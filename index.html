@@ -1,0 +1,1514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCQ Game: Who Wants to Be a Millionaire</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- SheetJS for reading Excel files -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Google Fonts: Inter for modern text, Press Start 2P for retro accents -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for Premium Chic Design with Minimal Shadows */
+        body {
+            font-family: 'Inter', sans-serif; /* Modern, clean font for general text */
+            background-color: #1a1a1a; /* Dark charcoal */
+            /* Layered background for subtle geometric pattern and gradient */
+            background-image:
+                repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 15px),
+                repeating-linear-gradient(90deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 15px),
+                linear-gradient(180deg, #1a1a1a 0%, #222222 100%); /* Subtle vertical gradient */
+            color: #e0e0e0; /* Light gray for general text */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden; /* Prevent horizontal scroll */
+            text-shadow: none; /* No general text shadow */
+        }
+
+        .game-container {
+            background-color: #2a2a2a; /* Slightly lighter charcoal */
+            background-image: linear-gradient(145deg, #2a2a2a 0%, #3a3a3a 100%); /* Subtle gradient */
+            border-radius: 1rem; /* Softly rounded corners */
+            border: 1px solid rgba(255,255,255,0.1); /* Very thin, subtle border */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4); /* Soft, diffused shadow */
+            padding: 3rem;
+            width: 95%;
+            max-width: 1200px;
+            min-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .section {
+            display: none; /* Hidden by default */
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 1rem;
+        }
+        .section.active {
+            display: flex; /* Show active section */
+        }
+        .btn {
+            /* Adjusted for better contrast */
+            @apply bg-gradient-to-br from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900 text-white font-semibold py-3 px-8 rounded-lg transition duration-200 ease-in-out transform hover:translate-y-[-2px] focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50;
+            border: none;
+            color: #f0f0f0; /* Brighter white for contrast */
+            text-shadow: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3); /* Slightly more pronounced shadow for depth */
+        }
+        .btn-green {
+            /* Adjusted for better contrast */
+            @apply bg-gradient-to-br from-green-700 to-green-800 hover:from-green-800 hover:to-green-900 text-white font-semibold py-3 px-8 rounded-lg transition duration-200 ease-in-out transform hover:translate-y-[-2px] focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50;
+            border: none;
+            color: #f0f0f0; /* Brighter white for contrast */
+            text-shadow: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        .btn-red {
+            /* Adjusted for better contrast */
+            @apply bg-gradient-to-br from-red-700 to-red-800 hover:from-red-800 hover:to-red-900 text-white font-semibold py-3 px-8 rounded-lg transition duration-200 ease-in-out transform hover:translate-y-[-2px] focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-opacity-50;
+            border: none;
+            color: #f0f0f0; /* Brighter white for contrast */
+            text-shadow: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        .btn-yellow {
+            /* Adjusted for better contrast - vibrant yellow background with white text */
+            @apply bg-gradient-to-br from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-white font-semibold py-2 px-5 rounded-md transition duration-200 ease-in-out transform hover:translate-y-[-1px] focus:outline-none focus:ring-2 focus:ring-yellow-300 focus:ring-opacity-50;
+            border: none;
+            color: #ffffff; /* Changed to white text for contrast */
+            text-shadow: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .btn-blue { /* For music toggles, etc. */
+            /* Adjusted for better contrast */
+            @apply bg-gradient-to-br from-blue-700 to-blue-800 hover:from-blue-800 hover:to-blue-900 text-white font-semibold py-3 px-6 rounded-md transition duration-200 ease-in-out transform hover:translate-y-[-2px] focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50;
+            border: none;
+            color: #f0f0f0; /* Brighter white for contrast */
+            text-shadow: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        .input-field, .dropdown {
+            @apply bg-gray-800 text-gray-200 px-5 py-3 rounded-md border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50;
+            box-shadow: none;
+            text-shadow: none;
+        }
+        .welcome-text {
+            font-family: 'Press Start 2P', cursive, sans-serif;
+            animation: fadeInScale 2s ease-out forwards;
+            opacity: 0;
+            transform: scale(0.8);
+            color: #ffd700;
+            text-shadow: 0 0 5px rgba(255,215,0,0.3);
+            font-size: 5rem;
+            line-height: 1;
+        }
+        @keyframes fadeInScale {
+            0% { opacity: 0; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .modal {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+        .modal-content {
+            background-color: #2a2a2a;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            border-radius: 0.75rem;
+            color: #e0e0e0;
+            text-shadow: none;
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+        .score-card-item {
+            @apply flex justify-between items-center bg-gray-700 p-4 rounded-md mb-3 border border-gray-600;
+            box-shadow: none;
+            color: #e0e0e0;
+            text-shadow: none;
+        }
+        .score-card-item .text-green-400 {
+            color: #28a745;
+            text-shadow: none;
+        }
+        .option-button {
+            @apply w-full py-4 px-8 my-2 rounded-md text-xl font-semibold transition duration-200 ease-in-out transform hover:scale-102;
+            background-color: #333333;
+            color: #e0e0e0;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: none;
+            text-shadow: none;
+        }
+        .option-button:hover {
+            background-color: #444444;
+            border-color: rgba(255,255,255,0.2);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .option-button.correct {
+            background-color: #28a745;
+            background-image: none;
+            border-color: #28a745;
+            box-shadow: none;
+            color: #ffffff;
+        }
+        .option-button.wrong {
+            background-color: #dc3545;
+            background-image: none;
+            border-color: #dc3545;
+            box-shadow: none;
+            color: #ffffff;
+        }
+        .option-button.disabled {
+            opacity: 0.5;
+            background-color: #444444;
+            border-color: #555;
+            box-shadow: none;
+            cursor: not-allowed;
+            text-shadow: none;
+            color: #aaaaaa;
+        }
+        .lifeline-button {
+            @apply bg-gradient-to-br from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-semibold py-3 px-6 rounded-md transition duration-200 ease-in-out transform hover:translate-y-[-2px];
+            border: none;
+            color: #ffffff;
+            text-shadow: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .lifeline-button.used {
+            @apply bg-gray-700 border-gray-600 text-gray-400 cursor-not-allowed shadow-none;
+            background-image: none;
+            text-shadow: none;
+            box-shadow: none;
+        }
+        .text-yellow-400 {
+            font-family: 'Press Start 2P', cursive, sans-serif;
+            color: #ffd700;
+            text-shadow: 0 0 5px rgba(255,215,0,0.3);
+        }
+        .text-gray-400 {
+            color: #e0e0e0;
+            text-shadow: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Global Navigation Buttons -->
+        <div id="global-nav" class="absolute top-4 left-4 flex space-x-2 z-50">
+            <button id="goToMainMenuBtnGlobal" class="btn-yellow text-sm px-4 py-2 rounded-lg" style="display: none;">
+                <i class="fas fa-home mr-1"></i> Main Menu
+            </button>
+            <button id="goToSettingsMenuBtnGlobal" class="btn-yellow text-sm px-4 py-2 rounded-lg" style="display: none;">
+                <i class="fas fa-cog mr-1"></i> Settings
+            </button>
+            <button id="goToMainGameBtnGlobal" class="btn-yellow text-sm px-4 py-2 rounded-lg" style="display: none;">
+                <i class="fas fa-play mr-1"></i> Game
+            </button>
+        </div>
+
+        <!-- Custom Modal for Alerts/Confirmations -->
+        <div id="customModal" class="modal">
+            <div class="modal-content">
+                <h3 id="modalTitle" class="text-2xl font-bold mb-4"></h3>
+                <p id="modalMessage" class="mb-6"></p>
+                <div id="modalButtons" class="modal-buttons">
+                    <!-- Buttons will be injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Menu Section -->
+        <div id="main-menu" class="section active">
+            <h1 class="welcome-text font-extrabold mb-8">
+                Welcome and Enjoy 😉
+            </h1>
+            <div class="space-y-4">
+                <button id="goToSettingsMenuBtn" class="btn">
+                    <i class="fas fa-cog mr-2"></i> Go to Settings Menu
+                </button>
+                <button id="goToDifficultySelectionBtn" class="btn">
+                    <i class="fas fa-play-circle mr-2"></i> Start New Game
+                </button>
+            </div>
+        </div>
+
+        <!-- Difficulty Selection Section -->
+        <div id="difficulty-selection" class="section">
+            <h2 class="text-4xl font-bold mb-8">Choose Difficulty 😬</h2>
+            <div class="mb-8">
+                <select id="difficultyDropdown" class="dropdown w-64">
+                    <option value="noob">Noob</option>
+                    <option value="elementary">Elementary</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advance">Advance</option>
+                    <option value="expert">Expert</option>
+                </select>
+            </div>
+            <button id="proceedToAddTeamBtn" class="btn">
+                <i class="fas fa-arrow-right mr-2"></i> Proceed to Add Team
+            </button>
+        </div>
+
+        <!-- Add Team Section -->
+        <div id="add-team-section" class="section">
+            <h2 class="text-4xl font-bold mb-8">Add Team 🙋🏽‍♀️🙋🏽‍♂️</h2>
+            <div id="teamsContainer" class="mb-6 w-full max-w-md space-y-4">
+                <!-- Team input fields will be added here -->
+            </div>
+            <div class="flex space-x-4 mb-8">
+                <button id="addTeamBtn" class="btn-green">
+                    <i class="fas fa-plus mr-2"></i> Add Team
+                </button>
+                <button id="removeTeamBtn" class="btn-red">
+                    <i class="fas fa-minus mr-2"></i> Remove Last Team
+                </button>
+            </div>
+            <button id="nextToReadyBtn" class="btn">
+                <i class="fas fa-forward mr-2"></i> Next
+            </button>
+        </div>
+
+        <!-- Are You Ready Section -->
+        <div id="are-you-ready-section" class="section">
+            <h2 class="text-4xl font-bold mb-8">Are You Ready? 🥱</h2>
+            <div class="flex space-x-4">
+                <button id="yesReadyBtn" class="btn-green">
+                    <i class="fas fa-check mr-2"></i> Yes
+                </button>
+                <button id="noReadyBtn" class="btn-red">
+                    <i class="fas fa-times mr-2"></i> No
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Game Section -->
+        <div id="game-section" class="section flex-row items-stretch justify-center p-4">
+            <!-- Scorecard (Left Side) -->
+            <div class="w-1/4 bg-gray-800 p-4 rounded-xl shadow-lg mr-4 flex flex-col justify-start items-center">
+                <h3 class="text-3xl font-bold mb-4 text-center">Scoreboard</h3>
+                <div id="scorecard" class="w-full">
+                    <!-- Team scores will be displayed here -->
+                </div>
+                <div class="mt-auto pt-4 border-t border-gray-700 w-full text-center">
+                    <h4 class="text-xl font-semibold mb-2">Game Master Controls</h4>
+                    <button id="resetGameBtn" class="btn-red w-full">
+                        <i class="fas fa-sync-alt mr-2"></i> Reset Game
+                    </button>
+                </div>
+            </div>
+
+            <!-- Q&A Content (Middle) -->
+            <div class="w-3/4 bg-gray-800 p-6 rounded-xl shadow-lg flex flex-col justify-between items-center">
+                <div class="w-full text-center mb-4">
+                    <h3 class="text-2xl font-bold text-gray-400">Level: <span id="currentLevelDisplay">1</span></h3>
+                    <h3 class="text-2xl font-bold text-gray-400">Question: <span id="currentQuestionNumberDisplay">1</span>/10</h3>
+                    <div class="text-5xl font-extrabold text-yellow-400 my-4">
+                        <span id="timerDisplay">60</span>s
+                    </div>
+                </div>
+
+                <div class="w-full mb-6">
+                    <p id="questionText" class="text-3xl font-semibold mb-8 text-center"></p>
+                    <div id="optionsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <button class="option-button" data-option="A">A: <span id="optionAContent"></span></button>
+                        <button class="option-button" data-option="B">B: <span id="optionBContent"></span></button>
+                        <button class="option-button" data-option="C">C: <span id="optionCContent"></span></button>
+                        <button class="option-button" data-option="D">D: <span id="optionDContent"></span></button>
+                    </div>
+                </div>
+
+                <div class="w-full flex justify-between items-center mt-auto pt-4 border-t border-gray-700">
+                    <div class="flex space-x-2">
+                        <button id="fiftyFiftyBtn" class="lifeline-button">
+                            <i class="fas fa-percent mr-1"></i> 50:50 (<span id="fiftyFiftyCount">3</span>)
+                        </button>
+                    </div>
+                    <button id="nextQuestionBtn" class="btn-green" style="display: none;">
+                        <i class="fas fa-arrow-right mr-2"></i> Next Question
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Section -->
+        <div id="settings-section" class="section">
+            <h2 class="text-4xl font-bold mb-8">Settings</h2>
+            <div class="space-y-6 w-full max-w-md">
+                <div class="flex flex-col items-center">
+                    <h3 class="text-2xl font-bold mb-2">Question Management</h3>
+                    <button id="downloadTemplateBtn" class="btn w-full mb-4">
+                        <i class="fas fa-download mr-2"></i> Download Excel Template
+                    </button>
+                    <label for="uploadQuestionsInput" class="btn w-full mb-4 cursor-pointer">
+                        <i class="fas fa-upload mr-2"></i> Upload Questions (Excel/CSV)
+                        <input type="file" id="uploadQuestionsInput" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" multiple style="display: none;">
+                    </label>
+                    <p id="uploadStatus" class="text-sm mt-2 text-gray-400">Upload Excel/CSV files (e.g., 'noob.xlsx', 'expert.csv') to load questions.</p>
+                </div>
+
+                <div class="flex flex-col items-center">
+                    <h3 class="text-2xl font-bold mb-2">Music Controls</h3>
+                    <div class="w-full flex items-center mb-2">
+                        <label for="mainMusicVolume" class="w-1/3 text-left">Main Game Volume:</label>
+                        <input type="range" id="mainMusicVolume" min="0" max="1" step="0.01" value="0.5" class="w-2/3">
+                    </div>
+                    <div class="w-full flex items-center mb-2">
+                        <label for="sfxVolume" class="w-1/3 text-left">SFX Volume:</label>
+                        <input type="range" id="sfxVolume" min="0" max="1" step="0.01" value="0.7" class="w-2/3">
+                    </div>
+                    <div class="w-full flex items-center justify-center space-x-4 mt-4">
+                        <button id="toggleMenuMusicBtn" class="btn-blue">
+                            <i class="fas fa-music mr-2"></i> Toggle Menu Music
+                        </button>
+                        <button id="toggleMainGameMusicBtn" class="btn-blue">
+                            <i class="fas fa-gamepad mr-2"></i> Toggle Game Music
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global game state variables
+        let currentSection = 'main-menu';
+        let teams = [];
+        let questions = {}; // Stores questions by difficulty
+        let currentDifficulty = 'noob';
+        let currentLevel = 1;
+        let currentQuestionIndex = 0; // Index within the shuffled questions for the current level
+        let shuffledQuestions = []; // Questions for the current game, shuffled
+        let timerInterval;
+        let timeLeft;
+        let fiftyFiftyUsedCount = 3; // Changed to 3 for multiple uses per level
+        let questionAnswered = false; // To prevent multiple answers/clicks
+        let hasUserInteracted = false; // Flag for audio playback
+
+        // Audio objects
+        // Using a function to create Audio objects to ensure consistent error handling and logging
+        function createAudio(src) {
+            const audioObj = new Audio('music/' + src); // Assuming music files are in a 'music' folder
+            audioObj.onerror = (e) => {
+                console.error(`Error loading audio file ${src}:`, e);
+                // Optionally, show a modal to the user, but avoid too many pop-ups
+                // showModal('Audio Error', `Could not load audio file: ${src}. Please ensure the file exists and is a valid MP3.`);
+            };
+            console.log(`Attempting to load audio: ${src}`); // Log the path
+            return audioObj;
+        }
+
+        const audio = {
+            menu: createAudio('menu.mp3'),
+            maingameLoop: createAudio('maingame-loop.mp3'),
+            correctAns: createAudio('corret_ans.mp3'),
+            wrongAns: createAudio('wrong_ans.mp3')
+        };
+        // Set audio loop properties
+        audio.menu.loop = true;
+        audio.maingameLoop.loop = true;
+        // Default volumes
+        audio.menu.volume = 0.5;
+        audio.maingameLoop.volume = 0.5;
+        audio.correctAns.volume = 0.7;
+        audio.wrongAns.volume = 0.7;
+
+        // Question points per level
+        const pointsPerLevel = {
+            1: 10,
+            2: 20,
+            3: 30,
+            4: 40,
+            5: 50
+        };
+        // Timer durations per level
+        const timerDurations = {
+            1: 60,
+            2: 50,
+            3: 40,
+            4: 30,
+            5: 20
+        };
+
+        // Questions data parsed from ddww.txt and previous noob questions
+        questions['noob'] = [
+            {"Question": "What is the capital of India?", "Option A": "Kolkata", "Option B": "Mumbai", "Option C": "New Delhi", "Option D": "Chennai", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which is the national bird of India?", "Option A": "Sparrow", "Option B": "Peacock", "Option C": "Parrot", "Option D": "Crow", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which is the currency of India?", "Option A": "Dollar", "Option B": "Yen", "Option C": "Rupee", "Option D": "Euro", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is the color of the Indian flag?", "Option A": "Red, White, Green", "Option B": "Saffron, White, Green", "Option C": "Blue, White, Green", "Option D": "Yellow, Green, Red", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "How many states are there in India?", "Option A": "28", "Option B": "29", "Option C": "30", "Option D": "31", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which river is the longest in India?", "Option A": "Ganga", "Option B": "Yamuna", "Option C": "Brahmaputra", "Option D": "Godavari", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "What is the national fruit of India?", "Option A": "Banana", "Option B": "Apple", "Option C": "Mango", "Option D": "Orange", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which animal is known as the 'Ship of the Desert'?", "Option A": "Horse", "Option B": "Donkey", "Option C": "Camel", "Option D": "Elephant", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which is the national sport of India?", "Option A": "Cricket", "Option B": "Hockey", "Option C": "Football", "Option D": "Kabaddi", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Who is the Prime Minister of India (as of 2025)?", "Option A": "Rahul Gandhi", "Option B": "Narendra Modi", "Option C": "Amit Shah", "Option D": "Yogi Adityanath", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What do plants need to make food?", "Option A": "Sunlight", "Option B": "Soil", "Option C": "Water", "Option D": "Air", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which planet is closest to the Sun?", "Option A": "Earth", "Option B": "Venus", "Option C": "Mercury", "Option D": "Mars", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "How many legs does an insect have?", "Option A": "4", "Option B": "6", "Option C": "8", "Option D": "10", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What gas do we breathe in to stay alive?", "Option A": "Carbon Dioxide", "Option B": "Oxygen", "Option C": "Nitrogen", "Option D": "Hydrogen", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is H2O commonly known as?", "Option A": "Salt", "Option B": "Water", "Option C": "Sugar", "Option D": "Oxygen", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which organ pumps blood in the human body?", "Option A": "Liver", "Option B": "Lungs", "Option C": "Heart", "Option D": "Brain", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "How many planets are there in the Solar System?", "Option A": "7", "Option B": "8", "Option C": "9", "Option D": "10", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which part of a plant is green and makes food?", "Option A": "Root", "Option B": "Stem", "Option C": "Leaf", "Option D": "Flower", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What do bees make?", "Option A": "Butter", "Option B": "Milk", "Option C": "Honey", "Option D": "Juice", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is the solid form of water?", "Option A": "Gas", "Option B": "Liquid", "Option C": "Ice", "Option D": "Steam", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Who was the first President of India?", "Option A": "Dr. Rajendra Prasad", "Option B": "Jawaharlal Nehru", "Option C": "Mahatma Gandhi", "Option D": "Subhash Chandra Bose", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "In which year did India gain independence?", "Option A": "1945", "Option B": "1946", "Option C": "1947", "Option D": "1948", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Who is known as the 'Father of the Nation'?", "Option A": "Jawaharlal Nehru", "Option B": "Dr. Ambedkar", "Option C": "Bhagat Singh", "Option D": "Mahatma Gandhi", "Correct Answer (A/B/C/D)": "D"},
+            {"Question": "Which city was the capital of India before Delhi?", "Option A": "Kolkata", "Option B": "Mumbai", "Option C": "Hyderabad", "Option D": "Chennai", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Who wrote the Indian National Anthem?", "Option A": "Mahatma Gandhi", "Option B": "Rabindranath Tagore", "Option C": "Subhash Bose", "Option D": "Sarojini Naidu", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which freedom fighter gave the slogan 'Jai Hind'?", "Option A": "Sardar Patel", "Option B": "Bhagat Singh", "Option C": "Subhash Chandra Bose", "Option D": "Rajguru", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What was the Quit India Movement?", "Option A": "A protest for independence", "Option B": "A game", "Option C": "A company", "Option D": "An exam", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Who was the first woman Prime Minister of India?", "Option A": "Sonia Gandhi", "Option B": "Pratibha Patil", "Option C": "Indira Gandhi", "Option D": "Kiran Bedi", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What was the ancient name of India?", "Option A": "Hindustan", "Option B": "Aryavarta", "Option C": "Bharat", "Option D": "All of these", "Correct Answer (A/B/C/D)": "D"},
+            {"Question": "Which empire built the Taj Mahal?", "Option A": "Gupta", "Option B": "Maurya", "Option C": "Mughal", "Option D": "British", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which state is known as the 'Abode of Clouds'?", "Option A": "Arunachal Pradesh", "Option B": "Manipur", "Option C": "Meghalaya", "Option D": "Nagaland", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is the capital of Meghalaya?", "Option A": "Tura", "Option B": "Shillong", "Option C": "Jowai", "Option D": "Nongpoh", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which tribe is predominant in Meghalaya?", "Option A": "Mizo", "Option B": "Khasi", "Option C": "Ao", "Option D": "Naga", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is the name of the famous waterfall near Cherrapunji?", "Option A": "Elephant Falls", "Option B": "Bishop Falls", "Option C": "Nohkalikai Falls", "Option D": "Sweet Falls", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which is the wettest place in India?", "Option A": "Mawsynram", "Option B": "Cherrapunji", "Option C": "Shillong", "Option D": "Imphal", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which fruit is a specialty of Sohra region?", "Option A": "Apple", "Option B": "Mango", "Option C": "Pineapple", "Option D": "Banana", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is the staple food of Khasi people?", "Option A": "Rice", "Option B": "Chapati", "Option C": "Bread", "Option D": "Dosa", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which river flows through Shillong?", "Option A": "Umkhrah", "Option B": "Dibang", "Option C": "Barak", "Option D": "Teesta", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which lake is famous in Shillong?", "Option A": "Dal Lake", "Option B": "Wards Lake", "Option C": "Umiam Lake", "Option D": "Tsomgo Lake", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which festival is celebrated by the Khasi tribe?", "Option A": "Hornbill", "Option B": "Rongali Bihu", "Option C": "Nongkrem", "Option D": "Durga Puja", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is a front desk in a hotel?", "Option A": "Kitchen", "Option B": "Reception", "Option C": "Store", "Option D": "Restaurant", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is 'housekeeping' in a hotel?", "Option A": "Cleaning rooms", "Option B": "Cooking food", "Option C": "Serving drinks", "Option D": "Selling tickets", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "What does a bellboy do?", "Option A": "Repair TV", "Option B": "Deliver luggage", "Option C": "Cook food", "Option D": "Clean washroom", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which room is most expensive in a hotel?", "Option A": "Single Room", "Option B": "Double Room", "Option C": "Suite", "Option D": "Deluxe Room", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is a menu?", "Option A": "A room key", "Option B": "A food list", "Option C": "A hotel bill", "Option D": "A calendar", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is room service?", "Option A": "Cleaning pool", "Option B": "Fixing electricity", "Option C": "Serving food in room", "Option D": "Checking passports", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What does a chef do?", "Option A": "Clean rooms", "Option B": "Cook food", "Option C": "Drive car", "Option D": "Manage accounts", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which department handles guest check-in?", "Option A": "Kitchen", "Option B": "Housekeeping", "Option C": "Front Office", "Option D": "Security", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is turndown service?", "Option A": "Making bed for sleep", "Option B": "Cooking dinner", "Option C": "Cleaning shoes", "Option D": "Cutting fruit", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "What does hospitality mean?", "Option A": "Hostility", "Option B": "Friendliness to guests", "Option C": "Opening stores", "Option D": "Playing music", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which insect produces silk?", "Option A": "Mosquito", "Option B": "Housefly", "Option C": "Silkworm", "Option D": "Ant", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which vitamin is provided by sunlight?", "Option A": "Vitamin A", "Option B": "Vitamin B", "Option C": "Vitamin C", "Option D": "Vitamin D", "Correct Answer (A/B/C/D)": "D"},
+            {"Question": "Which sense is used to smell?", "Option A": "Eyes", "Option B": "Ears", "Option C": "Nose", "Option D": "Tongue", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "How many bones are there in the adult human body?", "Option A": "200", "Option B": "206", "Option C": "208", "Option D": "210", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which gas is used to fill balloons?", "Option A": "Oxygen", "Option B": "Helium", "Option C": "Hydrogen", "Option D": "Carbon dioxide", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is the largest organ in the human body?", "Option A": "Heart", "Option B": "Liver", "Option C": "Skin", "Option D": "Brain", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "How many hours are there in a day?", "Option A": "12", "Option B": "24", "Option C": "48", "Option D": "60", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which shape has 3 sides?", "Option A": "Square", "Option B": "Rectangle", "Option C": "Triangle", "Option D": "Circle", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What do cows give us?", "Option A": "Water", "Option B": "Milk", "Option C": "Meat", "Option D": "Wool", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which part of your body helps you think?", "Option A": "Brain", "Option B": "Heart", "Option C": "Liver", "Option D": "Lungs", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which is the tallest animal?", "Option A": "Zebra", "Option B": "Giraffe", "Option C": "Horse", "Option D": "Elephant", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "How many fingers do humans have on one hand?", "Option A": "3", "Option B": "4", "Option C": "5", "Option D": "6", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is the freezing point of water?", "Option A": "0°C", "Option B": "10°C", "Option C": "50°C", "Option D": "100°C", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which animal is known as the king of the jungle?", "Option A": "Tiger", "Option B": "Lion", "Option C": "Cheetah", "Option D": "Elephant", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What do we wear on our feet?", "Option A": "Shirt", "Option B": "Pants", "Option C": "Shoes", "Option D": "Hat", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which animal gives wool?", "Option A": "Goat", "Option B": "Sheep", "Option C": "Horse", "Option D": "Cow", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which bird can mimic human speech?", "Option A": "Pigeon", "Option B": "Crow", "Option C": "Parrot", "Option D": "Eagle", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which number comes after 9?", "Option A": "7", "Option B": "8", "Option C": "10", "Option D": "11", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What do we use to write on a blackboard?", "Option A": "Pencil", "Option B": "Chalk", "Option C": "Pen", "Option D": "Marker", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What color do you get by mixing red and yellow?", "Option A": "Orange", "Option B": "Green", "Option C": "Blue", "Option D": "Purple", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which fruit is yellow and curved?", "Option A": "Apple", "Option B": "Mango", "Option C": "Banana", "Option D": "Orange", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "How many days are there in a week?", "Option A": "5", "Option B": "6", "Option C": "7", "Option D": "8", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which festival is known as the festival of lights?", "Option A": "Holi", "Option B": "Eid", "Option C": "Diwali", "Option D": "Christmas", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which animal is known for its trunk?", "Option A": "Elephant", "Option B": "Lion", "Option C": "Zebra", "Option D": "Deer", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "What is the main source of energy for Earth?", "Option A": "Moon", "Option B": "Stars", "Option C": "Sun", "Option D": "Electricity", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which is the national flower of India?", "Option A": "Sunflower", "Option B": "Rose", "Option C": "Lotus", "Option D": "Jasmine", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which animal is found in Kaziranga National Park?", "Option A": "Tiger", "Option B": "Elephant", "Option C": "Rhino", "Option D": "Leopard", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which country is to the north of India?", "Option A": "Sri Lanka", "Option B": "Pakistan", "Option C": "China", "Option D": "Nepal", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which is the smallest state in India?", "Option A": "Goa", "Option B": "Sikkim", "Option C": "Tripura", "Option D": "Manipur", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "What is Shillong also known as?", "Option A": "Scotland of the East", "Option B": "City of Lakes", "Option C": "City of Joy", "Option D": "Queen of Hills", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which city hosts the Cherry Blossom Festival?", "Option A": "Imphal", "Option B": "Shillong", "Option C": "Aizawl", "Option D": "Kohima", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What language do most people speak in Shillong?", "Option A": "Hindi", "Option B": "Khasi", "Option C": "Tamil", "Option D": "Bengali", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What does a receptionist do?", "Option A": "Serve food", "Option B": "Clean rooms", "Option C": "Greet guests", "Option D": "Cook meals", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which dish is common in Khasi cuisine?", "Option A": "Biryani", "Option B": "Jadoh", "Option C": "Dhokla", "Option D": "Momos", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which hill station is the capital of Mizoram?", "Option A": "Kohima", "Option B": "Imphal", "Option C": "Aizawl", "Option D": "Agartala", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is a concierge in a hotel?", "Option A": "A chef", "Option B": "A housekeeper", "Option C": "A front office helper", "Option D": "A travel assistant", "Correct Answer (A/B/C/D)": "D"},
+            {"Question": "What is a guest in a hotel?", "Option A": "Someone working there", "Option B": "Someone visiting", "Option C": "Someone lost", "Option D": "Someone shopping", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is the national animal of India?", "Option A": "Tiger", "Option B": "Lion", "Option C": "Elephant", "Option D": "Leopard", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which planet do we live on?", "Option A": "Mars", "Option B": "Earth", "Option C": "Jupiter", "Option D": "Venus", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which part of the body helps us see?", "Option A": "Ears", "Option B": "Nose", "Option C": "Mouth", "Option D": "Eyes", "Correct Answer (A/B/C/D)": "D"},
+            {"Question": "Which is the first month of the year?", "Option A": "December", "Option B": "June", "Option C": "January", "Option D": "March", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What does a waiter do?", "Option A": "Cooks food", "Option B": "Cleans dishes", "Option C": "Serves customers", "Option D": "Manages hotel", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Where is Umiam Lake located?", "Option A": "Tura", "Option B": "Nongstoin", "Option C": "Shillong", "Option D": "Jowai", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is the job of a lifeguard?", "Option A": "Guard the door", "Option B": "Serve food", "Option C": "Protect swimmers", "Option D": "Clean rooms", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What does a fire extinguisher do?", "Option A": "Creates fire", "Option B": "Makes smoke", "Option C": "Stores water", "Option D": "Puts out fire", "Correct Answer (A/B/C/D)": "D"},
+            {"Question": "Which department handles laundry in a hotel?", "Option A": "Kitchen", "Option B": "Housekeeping", "Option C": "Front Office", "Option D": "Security", "Correct Answer (A/B/C/D)": "B"}
+        ];
+
+        questions['elementary'] = [
+            {"Question": "Which Indian city is called the Pink City?", "Option A": "Delhi", "Option B": "Mumbai", "Option C": "Jaipur", "Option D": "Chennai", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which ocean is on the east coast of India?", "Option A": "Atlantic", "Option B": "Indian", "Option C": "Pacific", "Option D": "Arctic", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Who is known as the Missile Man of India?", "Option A": "Vikram Sarabhai", "Option B": "APJ Abdul Kalam", "Option C": "Rakesh Sharma", "Option D": "Satish Dhawan", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which is the smallest continent?", "Option A": "Asia", "Option B": "Europe", "Option C": "Australia", "Option D": "Africa", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is the capital of Arunachal Pradesh?", "Option A": "Itanagar", "Option B": "Kohima", "Option C": "Aizawl", "Option D": "Imphal", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which instrument measures temperature?", "Option A": "Barometer", "Option B": "Thermometer", "Option C": "Speedometer", "Option D": "Altimeter", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Who discovered gravity?", "Option A": "Newton", "Option B": "Einstein", "Option C": "Galileo", "Option D": "Darwin", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "What is the national river of India?", "Option A": "Brahmaputra", "Option B": "Ganga", "Option C": "Yamuna", "Option D": "Godavari", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which animal is found on the Indian currency?", "Option A": "Lion", "Option B": "Elephant", "Option C": "Tiger", "Option D": "Rhino", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "What is the capital of Mizoram?", "Option A": "Agartala", "Option B": "Aizawl", "Option C": "Kohima", "Option D": "Shillong", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is the boiling point of water?", "Option A": "50°C", "Option B": "100°C", "Option C": "150°C", "Option D": "200°C", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which part of the plant absorbs water?", "Option A": "Stem", "Option B": "Leaf", "Option C": "Root", "Option D": "Flower", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which gas do plants take in?", "Option A": "Oxygen", "Option B": "Carbon Dioxide", "Option C": "Hydrogen", "Option D": "Nitrogen", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is the center of the solar system?", "Option A": "Earth", "Option B": "Mars", "Option C": "Moon", "Option D": "Sun", "Correct Answer (A/B/C/D)": "D"},
+            {"Question": "How many bones are in the human body?", "Option A": "200", "Option B": "206", "Option C": "210", "Option D": "212", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is a baby frog called?", "Option A": "Kid", "Option B": "Tadpole", "Option C": "Calf", "Option D": "Pup", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which vitamin is obtained from sunlight?", "Option A": "Vitamin A", "Option B": "Vitamin B", "Option C": "Vitamin D", "Option D": "Vitamin C", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which part of the body controls actions?", "Option A": "Heart", "Option B": "Brain", "Option C": "Lungs", "Option D": "Stomach", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is used to see tiny organisms?", "Option A": "Microscope", "Option B": "Telescope", "Option C": "Stethoscope", "Option D": "Periscope", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which sense organ helps us hear?", "Option A": "Eyes", "Option B": "Nose", "Option C": "Ears", "Option D": "Skin", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Who was the first Mughal emperor?", "Option A": "Akbar", "Option B": "Babur", "Option C": "Shah Jahan", "Option D": "Aurangzeb", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is Mahatma Gandhi known for?", "Option A": "Music", "Option B": "Freedom struggle", "Option C": "Sports", "Option D": "Science", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "In which year was the Indian Constitution adopted?", "Option A": "1947", "Option B": "1950", "Option C": "1952", "Option D": "1960", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Who founded the Maurya Empire?", "Option A": "Ashoka", "Option B": "Chandragupta", "Option C": "Harsha", "Option D": "Kanishka", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is the ancient script of India?", "Option A": "Latin", "Option B": "Devanagari", "Option C": "Greek", "Option D": "Arabic", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which king built the Red Fort?", "Option A": "Akbar", "Option B": "Babur", "Option C": "Shah Jahan", "Option D": "Jahangir", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is the Samadhi of Gandhiji called?", "Option A": "Shanti Ghat", "Option B": "Raj Ghat", "Option C": "Vijay Ghat", "Option D": "Veer Bhumi", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which movement did Gandhiji start in 1930?", "Option A": "Non-Cooperation", "Option B": "Dandi March", "Option C": "Khilafat", "Option D": "Swadeshi", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Who was the first woman President of India?", "Option A": "Indira Gandhi", "Option B": "Sonia Gandhi", "Option C": "Pratibha Patil", "Option D": "Sarojini Naidu", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which is the oldest civilization in India?", "Option A": "Greek", "Option B": "Harappan", "Option C": "Roman", "Option D": "Persian", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is the state flower of Meghalaya?", "Option A": "Orchid", "Option B": "Lily", "Option C": "Lotus", "Option D": "Rose", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "In which district is Mawlynnong located?", "Option A": "East Khasi Hills", "Option B": "West Garo Hills", "Option C": "South West Khasi Hills", "Option D": "Ri Bhoi", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which state shares border with Bangladesh?", "Option A": "Punjab", "Option B": "Assam", "Option C": "Meghalaya", "Option D": "Mizoram", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which traditional attire is worn by Khasi men?", "Option A": "Jymphong", "Option B": "Lungi", "Option C": "Kurta", "Option D": "Sherwani", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Where is Laitlum Canyon located?", "Option A": "Shillong", "Option B": "Jowai", "Option C": "Mawlynnong", "Option D": "Cherrapunji", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "What is the main occupation of people in Meghalaya?", "Option A": "Fishing", "Option B": "Mining", "Option C": "Agriculture", "Option D": "Weaving", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which is the main language spoken in Shillong?", "Option A": "Hindi", "Option B": "Assamese", "Option C": "Khasi", "Option D": "Bengali", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which lake is called Barapani?", "Option A": "Wards Lake", "Option B": "Dal Lake", "Option C": "Umiam Lake", "Option D": "Chilika Lake", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which is a popular Meghalaya dish?", "Option A": "Biryani", "Option B": "Jadoh", "Option C": "Pakhala", "Option D": "Sambar", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which fruit is famously grown in Meghalaya?", "Option A": "Mango", "Option B": "Pineapple", "Option C": "Apple", "Option D": "Banana", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which department handles cleaning in a hotel?", "Option A": "Security", "Option B": "Housekeeping", "Option C": "Reception", "Option D": "Kitchen", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is a maître d’ in a restaurant?", "Option A": "Chef", "Option B": "Manager", "Option C": "Waiter", "Option D": "Host", "Correct Answer (A/B/C/D)": "D"},
+            {"Question": "What is the full form of F&B?", "Option A": "Food & Baggage", "Option B": "Fruits & Bread", "Option C": "Food & Beverage", "Option D": "Finance & Billing", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What does a valet do?", "Option A": "Cook", "Option B": "Clean", "Option C": "Park cars", "Option D": "Serve food", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is the star rating system used for?", "Option A": "Food quality", "Option B": "Service hours", "Option C": "Hotel classification", "Option D": "Room size", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is the check-in time in most hotels?", "Option A": "12:00 AM", "Option B": "10:00 PM", "Option C": "10:00 AM", "Option D": "12:00 PM", "Correct Answer (A/B/C/D)": "D"},
+            {"Question": "Which utensil is used to eat soup?", "Option A": "Fork", "Option B": "Spoon", "Option C": "Knife", "Option D": "Chopsticks", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Who manages the hotel kitchen?", "Option A": "Manager", "Option B": "Chef", "Option C": "Receptionist", "Option D": "Waiter", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is the meaning of concierge?", "Option A": "Driver", "Option B": "Bellboy", "Option C": "Guest assistant", "Option D": "Laundry worker", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is an apron used for?", "Option A": "Decorating", "Option B": "Cooking", "Option C": "Sleeping", "Option D": "Bathing", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which state is known for Hornbill Festival?", "Option A": "Mizoram", "Option B": "Manipur", "Option C": "Nagaland", "Option D": "Assam", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Where is Cherrapunji located?", "Option A": "Nagaland", "Option B": "Arunachal Pradesh", "Option C": "Meghalaya", "Option D": "Mizoram", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What does 'Atithi Devo Bhava' mean?", "Option A": "Travel is life", "Option B": "Guests are gods", "Option C": "Work is worship", "Option D": "Clean is green", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which is India's national tree?", "Option A": "Pine", "Option B": "Banyan", "Option C": "Mango", "Option D": "Neem", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which part of India is called Seven Sisters?", "Option A": "South India", "Option B": "North India", "Option C": "Northeast India", "Option D": "Central India", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which mountain range lies to the north of India?", "Option A": "Andes", "Option B": "Alps", "Option C": "Himalayas", "Option D": "Aravalli", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which famous cave is in Meghalaya?", "Option A": "Mawsmai Cave", "Option B": "Ellora Cave", "Option C": "Ajantha Cave", "Option D": "Elephanta Cave", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which traditional dance is performed by Khasis?", "Option A": "Ghoomar", "Option B": "Bihu", "Option C": "Cheraw", "Option D": "Shad Suk Mynsiem", "Correct Answer (A/B/C/D)": "D"},
+            {"Question": "Which state is called Land of Rising Sun?", "Option A": "Manipur", "Option B": "Assam", "Option C": "Arunachal Pradesh", "Option D": "Mizoram", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Who is the current Chief Minister of Meghalaya (2025)?", "Option A": "Conrad Sangma", "Option B": "Mukul Sangma", "Option C": "DD Lapang", "Option D": "AL Hek", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which festival marks the new year for many communities in Northeast India?", "Option A": "Pongal", "Option B": "Bihu", "Option C": "Holi", "Option D": "Diwali", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is used to greet guests in a hotel?", "Option A": "Welcome dance", "Option B": "Bell", "Option C": "Garland", "Option D": "Smile", "Correct Answer (A/B/C/D)": "D"},
+            {"Question": "Who helps you carry your luggage at a hotel?", "Option A": "Security", "Option B": "Bellboy", "Option C": "Chef", "Option D": "Manager", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which place in Shillong is famous for local markets?", "Option A": "Laitumkhrah", "Option B": "Police Bazaar", "Option C": "Nongpoh", "Option D": "Dhanketi", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which local instrument is popular in Khasi music?", "Option A": "Guitar", "Option B": "Piano", "Option C": "Duitara", "Option D": "Tabla", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which is the highest point in Shillong?", "Option A": "Umiam Peak", "Option B": "Lum Sohpetbneng", "Option C": "Laitlum", "Option D": "Riwar", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Where do tourists get info in hotels?", "Option A": "Laundry", "Option B": "Service Desk", "Option C": "Tour Desk", "Option D": "Housekeeping", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which famous missionary college is in Shillong?", "Option A": "St. Xavier's", "Option B": "Lady Keane", "Option C": "St. Edmund’s", "Option D": "Don Bosco", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which government hotel chain operates in Meghalaya?", "Option A": "ITC", "Option B": "Marriott", "Option C": "Ginger", "Option D": "MTDC", "Correct Answer (A/B/C/D)": "D"},
+            {"Question": "How many players are there in a football team?", "Option A": "9", "Option B": "10", "Option C": "11", "Option D": "12", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which festival is known for lights?", "Option A": "Diwali", "Option B": "Holi", "Option C": "Eid", "Option D": "Christmas", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "What do we use to find direction?", "Option A": "Telescope", "Option B": "Compass", "Option C": "Microscope", "Option D": "Altimeter", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "How many days in a leap year?", "Option A": "365", "Option B": "366", "Option C": "364", "Option D": "360", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which gas is used in balloons?", "Option A": "Helium", "Option B": "Hydrogen", "Option C": "Oxygen", "Option D": "Carbon Dioxide", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "How many states does India have?", "Option A": "27", "Option B": "28", "Option C": "29", "Option D": "30", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which bird lays the largest egg?", "Option A": "Crow", "Option B": "Ostrich", "Option C": "Pigeon", "Option D": "Hen", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which country is India's neighbor?", "Option A": "Australia", "Option B": "Sri Lanka", "Option C": "Canada", "Option D": "Mexico", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Where is the Taj Mahal?", "Option A": "Delhi", "Option B": "Agra", "Option C": "Jaipur", "Option D": "Mumbai", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which is the fastest land animal?", "Option A": "Cheetah", "Option B": "Lion", "Option C": "Tiger", "Option D": "Leopard", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "What does a chef wear on his head?", "Option A": "Helmet", "Option B": "Cap", "Option C": "Chef Hat", "Option D": "Scarf", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is the main source of energy for Earth?", "Option A": "Wind", "Option B": "Sun", "Option C": "Water", "Option D": "Coal", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which dish is common in hotel breakfast?", "Option A": "Roti", "Option B": "Dosa", "Option C": "Biryani", "Option D": "Pasta", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which document is given after hotel stay?", "Option A": "Report", "Option B": "Invoice", "Option C": "Bill", "Option D": "Receipt", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which planet is known as the Red Planet?", "Option A": "Earth", "Option B": "Mars", "Option C": "Jupiter", "Option D": "Saturn", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Who invented the light bulb?", "Option A": "Newton", "Option B": "Edison", "Option C": "Darwin", "Option D": "Pasteur", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which Indian festival is celebrated with colors?", "Option A": "Diwali", "Option B": "Holi", "Option C": "Eid", "Option D": "Bihu", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which river flows through Assam?", "Option A": "Ganga", "Option B": "Yamuna", "Option C": "Brahmaputra", "Option D": "Krishna", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Where is Don Bosco Museum located?", "Option A": "Tura", "Option B": "Nongstoin", "Option C": "Shillong", "Option D": "Jowai", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What does a doorman in a hotel do?", "Option A": "Cook food", "Option B": "Clean rooms", "Option C": "Open doors", "Option D": "Park cars", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which flower is known as the 'Queen of Flowers'?", "Option A": "Tulip", "Option B": "Sunflower", "Option C": "Rose", "Option D": "Lily", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is the name of the train service in the hills of Darjeeling?", "Option A": "Mountain Rail", "Option B": "Darjeeling Express", "Option C": "Toy Train", "Option D": "Hill Coach", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which organ helps you breathe?", "Option A": "Liver", "Option B": "Heart", "Option C": "Lungs", "Option D": "Brain", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Where do Khasi people mostly live?", "Option A": "Punjab", "Option B": "Gujarat", "Option C": "Meghalaya", "Option D": "Kerala", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which tool is used for slicing bread in hotel kitchens?", "Option A": "Peeler", "Option B": "Grater", "Option C": "Bread Knife", "Option D": "Scissor", "Correct Answer (A/B/C/D)": "C"}
+        ];
+
+        questions['intermediate'] = [
+            {"Question": "What is the primary goal of hospitality?", "Option A": "Efficiency", "Option B": "Profit", "Option C": "Guest Satisfaction", "Option D": "Inventory Management", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which Indian state has the most UNESCO World Heritage Sites?", "Option A": "Karnataka", "Option B": "Maharashtra", "Option C": "Uttar Pradesh", "Option D": "Madhya Pradesh", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What type of room includes a living and sleeping area?", "Option A": "Studio room", "Option B": "Suite room", "Option C": "Single room", "Option D": "Double room", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which vitamin helps in blood clotting?", "Option A": "Vitamin A", "Option B": "Vitamin B", "Option C": "Vitamin K", "Option D": "Vitamin D", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "In which year did Meghalaya become a full-fledged state?", "Option A": "1968", "Option B": "1972", "Option C": "1975", "Option D": "1980", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is the function of a sommelier in a restaurant?", "Option A": "Cook", "Option B": "Security", "Option C": "Housekeeping", "Option D": "Serve wine", "Correct Answer (A/B/C/D)": "D"},
+            {"Question": "Which Mughal emperor built Jama Masjid?", "Option A": "Akbar", "Option B": "Humayun", "Option C": "Babur", "Option D": "Shah Jahan", "Correct Answer (A/B/C/D)": "D"},
+            {"Question": "Which Meghalaya tribe celebrates the Wangala festival?", "Option A": "Khasi", "Option B": "Jaintia", "Option C": "Garo", "Option D": "Rabha", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which city is known as the Silicon Valley of India?", "Option A": "Pune", "Option B": "Chennai", "Option C": "Noida", "Option D": "Bengaluru", "Correct Answer (A/B/C/D)": "D"},
+            {"Question": "What is the correct service style for fine dining?", "Option A": "Buffet", "Option B": "Service à la russe", "Option C": "Service à la française", "Option D": "Family style", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Who discovered penicillin?", "Option A": "Alexander Fleming", "Option B": "Louis Pasteur", "Option C": "Rutherford", "Option D": "Isaac Newton", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Who was the first Indian to win an individual Olympic gold medal?", "Option A": "Abhinav Bindra", "Option B": "Milkha Singh", "Option C": "Leander Paes", "Option D": "Vijender Singh", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which hotel department manages linen and laundry?", "Option A": "Kitchen", "Option B": "Housekeeping", "Option C": "Front Office", "Option D": "HR", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which organ purifies blood in the human body?", "Option A": "Heart", "Option B": "Liver", "Option C": "Kidney", "Option D": "Lungs", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which river flows through Meghalaya?", "Option A": "Brahmaputra", "Option B": "Ganga", "Option C": "Umngot", "Option D": "Yamuna", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What does EP stand for in hotel meal plans?", "Option A": "European Plan", "Option B": "Elite Plan", "Option C": "Economy Plan", "Option D": "Extended Plan", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Who wrote \"Discovery of India\"?", "Option A": "Dr. Rajendra Prasad", "Option B": "Jawaharlal Nehru", "Option C": "Mahatma Gandhi", "Option D": "Sardar Patel", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is the role of a guest relation executive?", "Option A": "Manage cleaning", "Option B": "Assist in luggage", "Option C": "Attend guest needs", "Option D": "Cook food", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is Shillong popularly called?", "Option A": "Cloud City", "Option B": "Scotland of the East", "Option C": "City of Flowers", "Option D": "Jewel of the East", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Where would you find the India-Bangladesh border in Meghalaya?", "Option A": "West Khasi Hills", "Option B": "South Garo Hills", "Option C": "West Jaintia Hills", "Option D": "Ri Bhoi", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What type of milk is used in paneer making?", "Option A": "Condensed milk", "Option B": "Skimmed milk", "Option C": "Buffalo milk", "Option D": "Soya milk", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which service style is used in banquets?", "Option A": "Gueridon", "Option B": "French", "Option C": "Buffet", "Option D": "Russian", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which hotel chain is owned by the Indian government?", "Option A": "ITC", "Option B": "Marriott", "Option C": "Taj", "Option D": "Ashok Group", "Correct Answer (A/B/C/D)": "D"},
+            {"Question": "What is the name of Meghalaya’s living root bridges district?", "Option A": "East Garo Hills", "Option B": "West Khasi Hills", "Option C": "East Khasi Hills", "Option D": "South West Khasi Hills", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which is the first satellite launched by India?", "Option A": "INSAT-1A", "Option B": "Chandrayaan-1", "Option C": "Aryabhata", "Option D": "Bhaskara", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which department handles guest checkout?", "Option A": "Housekeeping", "Option B": "Kitchen", "Option C": "Front Office", "Option D": "HR", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Who introduced the Permanent Settlement in India?", "Option A": "Lord Wellesley", "Option B": "Lord Dalhousie", "Option C": "Lord Cornwallis", "Option D": "Lord Curzon", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which language is NOT spoken in Meghalaya?", "Option A": "Khasi", "Option B": "Jaintia", "Option C": "Garo", "Option D": "Mizo", "Correct Answer (A/B/C/D)": "D"},
+            {"Question": "What is the largest unit of data?", "Option A": "KB", "Option B": "MB", "Option C": "TB", "Option D": "GB", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "In hotel hierarchy, who is directly under General Manager?", "Option A": "Executive Chef", "Option B": "Front Office Manager", "Option C": "Resident Manager", "Option D": "Housekeeping Manager", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What kind of climate does Shillong have?", "Option A": "Tropical", "Option B": "Humid subtropical", "Option C": "Arid", "Option D": "Mediterranean", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is a Gueridon Service?", "Option A": "Self-service", "Option B": "Table-side cooking", "Option C": "Plated buffet", "Option D": "Central service", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which Indian scientist is known as the Missile Man?", "Option A": "Dr. Homi Bhabha", "Option B": "CV Raman", "Option C": "APJ Abdul Kalam", "Option D": "Satyendra Bose", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What’s the chemical symbol for gold?", "Option A": "Ag", "Option B": "Au", "Option C": "Fe", "Option D": "Pb", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Where is the famous Nartiang Monolith Park?", "Option A": "Tura", "Option B": "Nongpoh", "Option C": "Jowai", "Option D": "Baghmara", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which hill range is Shillong located on?", "Option A": "Eastern Ghats", "Option B": "Khasi Hills", "Option C": "Nilgiris", "Option D": "Western Ghats", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is the capital of Tripura?", "Option A": "Kohima", "Option B": "Imphal", "Option C": "Agartala", "Option D": "Aizawl", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Who was India’s first female governor?", "Option A": "Sarojini Naidu", "Option B": "Indira Gandhi", "Option C": "Pratibha Patil", "Option D": "Kiran Bedi", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which Indian hotel group runs Vivanta?", "Option A": "ITC", "Option B": "Leela", "Option C": "Taj Group", "Option D": "Accor", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which gas is used in soft drinks?", "Option A": "Hydrogen", "Option B": "Oxygen", "Option C": "Carbon Dioxide", "Option D": "Nitrogen", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is the function of the front office?", "Option A": "Clean rooms", "Option B": "Guest interaction", "Option C": "Cook food", "Option D": "Maintenance", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Where is Mawphlang sacred grove located?", "Option A": "Nongpoh", "Option B": "Cherrapunji", "Option C": "Shillong", "Option D": "Dawki", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is the term for ‘prepared but not cooked’ food?", "Option A": "Ready-to-eat", "Option B": "Parboiled", "Option C": "Ready-to-cook", "Option D": "Raw", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Who built the Qutub Minar?", "Option A": "Akbar", "Option B": "Qutb-ud-din Aibak", "Option C": "Shah Jahan", "Option D": "Aurangzeb", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What does FIFO stand for in food storage?", "Option A": "Fast In Fast Out", "Option B": "Food In First Out", "Option C": "First In First Out", "Option D": "Feed In Feed Out", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which Meghalaya city is closest to Bangladesh?", "Option A": "Mairang", "Option B": "Dawki", "Option C": "Baghmara", "Option D": "Nongstoin", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which gas do humans exhale?", "Option A": "Oxygen", "Option B": "Carbon Monoxide", "Option C": "Carbon Dioxide", "Option D": "Hydrogen", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which hotel software is commonly used for reservations?", "Option A": "Opera", "Option B": "Oracle", "Option C": "Photoshop", "Option D": "Sabre", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "What is Meghalaya's state animal?", "Option A": "Clouded Leopard", "Option B": "Red Panda", "Option C": "Barking Deer", "Option D": "Hoolock Gibbon", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which festival is known as the festival of harvest in Assam?", "Option A": "Nongkrem", "Option B": "Chapchar Kut", "Option C": "Bihu", "Option D": "Moatsu", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is mise en place in culinary terms?", "Option A": "Dish washing", "Option B": "Food reheating", "Option C": "Table setting", "Option D": "Food prep before cooking", "Correct Answer (A/B/C/D)": "D"},
+            {"Question": "Who developed the theory of relativity?", "Option A": "Edison", "Option B": "Darwin", "Option C": "Einstein", "Option D": "Newton", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which famous waterfall is near Cherrapunji?", "Option A": "Elephant Falls", "Option B": "Nohkalikai Falls", "Option C": "Wards Lake", "Option D": "Seven Sisters", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which part of the hotel handles accounts?", "Option A": "Kitchen", "Option B": "Finance", "Option C": "Front Office", "Option D": "Housekeeping", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is the term for folding napkins in a decorative way?", "Option A": "Table skirting", "Option B": "Napkin folding", "Option C": "Origami", "Option D": "Napery", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which freedom fighter led the Salt March?", "Option A": "Bhagat Singh", "Option B": "Sardar Patel", "Option C": "Jawaharlal Nehru", "Option D": "Mahatma Gandhi", "Correct Answer (A/B/C/D)": "D"},
+            {"Question": "Which vitamin is found in citrus fruits?", "Option A": "Vitamin A", "Option B": "Vitamin B", "Option C": "Vitamin C", "Option D": "Vitamin D", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is Shillong’s primary water source?", "Option A": "Umiam Lake", "Option B": "Mawsynram Lake", "Option C": "Dawki River", "Option D": "Jowai Stream", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which protocol is used for sending emails?", "Option A": "HTTP", "Option B": "SMTP", "Option C": "FTP", "Option D": "IP", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which Indian state is known as the Land of Festivals?", "Option A": "Manipur", "Option B": "Mizoram", "Option C": "Assam", "Option D": "Nagaland", "Correct Answer (A/B/C/D)": "D"},
+            {"Question": "Which freedom fighter is from Meghalaya?", "Option A": "Wickliffe Syiem", "Option B": "Kiang Nangbah", "Option C": "Sarojini Naidu", "Option D": "Gopinath Bordoloi", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which is a fine dining etiquette?", "Option A": "Use hands", "Option B": "Reach across the table", "Option C": "Talk loudly", "Option D": "Use outermost cutlery first", "Correct Answer (A/B/C/D)": "D"},
+            {"Question": "Which part of the cow gives us milk?", "Option A": "Horn", "Option B": "Tail", "Option C": "Teat", "Option D": "Hoof", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is the purpose of SOP in hotels?", "Option A": "Decoration", "Option B": "Standard Procedure", "Option C": "Guest greeting", "Option D": "None", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Who was the first woman to fly solo in Indian Air Force?", "Option A": "Avani Chaturvedi", "Option B": "Hima Das", "Option C": "Mary Kom", "Option D": "Sania Mirza", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "What does CRM mean in hospitality?", "Option A": "Customer Rate Management", "Option B": "Client Resource Management", "Option C": "Customer Relationship Management", "Option D": "Corporate Role Monitoring", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Where is the famous Lum Nehru Park?", "Option A": "Ri Bhoi", "Option B": "Shillong", "Option C": "Jowai", "Option D": "Nongpoh", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which country gifted the Statue of Liberty to the US?", "Option A": "Germany", "Option B": "UK", "Option C": "France", "Option D": "Italy", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is the role of a barista?", "Option A": "Makes cocktails", "Option B": "Makes coffee", "Option C": "Serves food", "Option D": "Makes desserts", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which is the highest civilian award in India?", "Option A": "Bharat Ratna", "Option B": "Padma Shri", "Option C": "Padma Vibhushan", "Option D": "Padma Bhushan", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which is the only floating national park in the world?", "Option A": "Kaziranga", "Option B": "Keibul Lamjao", "Option C": "Sundarbans", "Option D": "Nokrek", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which one is a traditional Khasi food?", "Option A": "Pakhala", "Option B": "Jadoh", "Option C": "Momo", "Option D": "Chak-hao", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What does the fire triangle include?", "Option A": "Air, Fire, Fuel", "Option B": "Fuel, Oxygen, Heat", "Option C": "Heat, Smoke, Fire", "Option D": "Heat, Wind, Water", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Who founded Shillong city?", "Option A": "British", "Option B": "Khasi tribe", "Option C": "Jaintia king", "Option D": "Garo elders", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which gas is used in refrigerators?", "Option A": "Methane", "Option B": "CFCs", "Option C": "Oxygen", "Option D": "Propane", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is a 'bell desk' responsible for?", "Option A": "Fire alarms", "Option B": "Luggage handling", "Option C": "Kitchen orders", "Option D": "Guest IDs", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What’s the capital of Manipur?", "Option A": "Kohima", "Option B": "Imphal", "Option C": "Aizawl", "Option D": "Dispur", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which festival is associated with the Garo tribe?", "Option A": "Wangala", "Option B": "Moatsu", "Option C": "Hornbill", "Option D": "Losar", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "What is the term for a guest who checks in without booking?", "Option A": "Expected guest", "Option B": "Casual guest", "Option C": "Walk-in guest", "Option D": "Flash guest", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which department decorates guest rooms?", "Option A": "Engineering", "Option B": "Kitchen", "Option C": "Housekeeping", "Option D": "Front Office", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Where is the Hornbill Festival celebrated?", "Option A": "Mizoram", "Option B": "Nagaland", "Option C": "Manipur", "Option D": "Tripura", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which is the cleanest village in Asia?", "Option A": "Dawki", "Option B": "Mawlynnong", "Option C": "Cherrapunji", "Option D": "Jowai", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which energy is derived from Earth's heat?", "Option A": "Solar", "Option B": "Nuclear", "Option C": "Hydrothermal", "Option D": "Geothermal", "Correct Answer (A/B/C/D)": "D"},
+            {"Question": "Which Indian invented zero?", "Option A": "Aryabhata", "Option B": "Einstein", "Option C": "Ramanujan", "Option D": "Tesla", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which part of a plant makes seeds?", "Option A": "Stem", "Option B": "Leaf", "Option C": "Root", "Option D": "Flower", "Correct Answer (A/B/C/D)": "D"},
+            {"Question": "Which is the deepest ocean in the world?", "Option A": "Atlantic", "Option B": "Arctic", "Option C": "Indian", "Option D": "Pacific", "Correct Answer (A/B/C/D)": "D"},
+            {"Question": "Which is the most common material for hotel keycards?", "Option A": "Metal", "Option B": "Wood", "Option C": "Plastic", "Option D": "Glass", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is the average boiling point of milk?", "Option A": "80°C", "Option B": "90°C", "Option C": "100°C", "Option D": "110°C", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which hotel rating system uses diamonds instead of stars?", "Option A": "TripAdvisor", "Option B": "AAA", "Option C": "Food Critics", "Option D": "UNESCO", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What does the term \"double occupancy\" mean?", "Option A": "Two guests per room", "Option B": "Two meals", "Option C": "Two beds", "Option D": "Two bathrooms", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which award is given for excellence in tourism in India?", "Option A": "PADMA", "Option B": "BHARAT RATNA", "Option C": "National Tourism Award", "Option D": "Swachh Bharat Award", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which instrument is used to measure humidity?", "Option A": "Thermometer", "Option B": "Hygrometer", "Option C": "Anemometer", "Option D": "Barometer", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which Indian state has the highest literacy rate (as of 2024)?", "Option A": "Kerala", "Option B": "Goa", "Option C": "Mizoram", "Option D": "Tamil Nadu", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which king united the Khasi kingdoms under British rule?", "Option A": "Tirot Sing", "Option B": "Kiang Nangbah", "Option C": "U Tirot Sing Syiem", "Option D": "Shivaji", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which tribal group in Meghalaya is matrilineal?", "Option A": "Garo", "Option B": "Naga", "Option C": "Mizo", "Option D": "Bodo", "Correct Answer (A/B/C/D)": "A"}
+        ];
+
+        questions['advance'] = [
+            {"Question": "Who was the first Indian woman to go to space?", "Option A": "Sunita Williams", "Option B": "Kalpana Chawla", "Option C": "Rakesh Sharma", "Option D": "None of the above", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is the full form of ISRO?", "Option A": "Indian Space Research Organization", "Option B": "International Space Research Organization", "Option C": "Indian Scientific Research Organization", "Option D": "International Scientific Research Organization", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which planet is known as the 'Morning Star' or 'Evening Star'?", "Option A": "Mars", "Option B": "Venus", "Option C": "Jupiter", "Option D": "Saturn", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is the smallest bone in the human body?", "Option A": "Femur", "Option B": "Stapes", "Option C": "Tibia", "Option D": "Fibula", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Who wrote 'Gitanjali'?", "Option A": "Rabindranath Tagore", "Option B": "Mahatma Gandhi", "Option C": "Jawaharlal Nehru", "Option D": "Bankim Chandra Chatterjee", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which Indian state has the longest coastline?", "Option A": "Maharashtra", "Option B": "Tamil Nadu", "Option C": "Gujarat", "Option D": "Andhra Pradesh", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is the capital of Nagaland?", "Option A": "Imphal", "Option B": "Kohima", "Option C": "Aizawl", "Option D": "Agartala", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which is the highest waterfall in India?", "Option A": "Jog Falls", "Option B": "Nohkalikai Falls", "Option C": "Dudhsagar Falls", "Option D": "Athirappilly Falls", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is the currency of Japan?", "Option A": "Yuan", "Option B": "Won", "Option C": "Yen", "Option D": "Dollar", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which gas is responsible for the greenhouse effect?", "Option A": "Oxygen", "Option B": "Nitrogen", "Option C": "Carbon Dioxide", "Option D": "Hydrogen", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Who was the first Indian to receive the Nobel Prize?", "Option A": "C.V. Raman", "Option B": "Mother Teresa", "Option C": "Rabindranath Tagore", "Option D": "Amartya Sen", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which is the largest desert in the world?", "Option A": "Sahara Desert", "Option B": "Arabian Desert", "Option C": "Gobi Desert", "Option D": "Antarctic Polar Desert", "Correct Answer (A/B/C/D)": "D"},
+            {"Question": "What is the chemical symbol for water?", "Option A": "CO2", "Option B": "O2", "Option C": "H2O", "Option D": "N2", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which instrument is used to measure atmospheric pressure?", "Option A": "Thermometer", "Option B": "Barometer", "Option C": "Anemometer", "Option D": "Hygrometer", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which is the largest ocean in the world?", "Option A": "Atlantic Ocean", "Option B": "Indian Ocean", "Option C": "Pacific Ocean", "Option D": "Arctic Ocean", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Who is known as the 'Iron Man of India'?", "Option A": "Mahatma Gandhi", "Option B": "Sardar Vallabhbhai Patel", "Option C": "Jawaharlal Nehru", "Option D": "Subhash Chandra Bose", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which country is famous for the Great Wall?", "Option A": "India", "Option B": "Japan", "Option C": "China", "Option D": "Egypt", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is the process by which plants make their food?", "Option A": "Respiration", "Option B": "Transpiration", "Option C": "Photosynthesis", "Option D": "Germination", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which is the highest peak in India?", "Option A": "Mount Everest", "Option B": "K2", "Option C": "Kangchenjunga", "Option D": "Nanda Devi", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which animal is the largest mammal on Earth?", "Option A": "Elephant", "Option B": "Blue Whale", "Option C": "Giraffe", "Option D": "Polar Bear", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is the capital of Uttarakhand?", "Option A": "Dehradun", "Option B": "Shimla", "Option C": "Gangtok", "Option D": "Bhopal", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which Indian state is known as the 'Spice Garden of India'?", "Option A": "Kerala", "Option B": "Karnataka", "Option C": "Goa", "Option D": "Assam", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "What is the main component of natural gas?", "Option A": "Propane", "Option B": "Butane", "Option C": "Methane", "Option D": "Ethane", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which Indian city is known as the 'City of Lakes'?", "Option A": "Udaipur", "Option B": "Srinagar", "Option C": "Bhopal", "Option D": "Nainital", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Who invented the telephone?", "Option A": "Thomas Edison", "Option B": "Alexander Graham Bell", "Option C": "Guglielmo Marconi", "Option D": "Nikola Tesla", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which is the longest river in the world?", "Option A": "Amazon River", "Option B": "Nile River", "Option C": "Yangtze River", "Option D": "Mississippi River", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is the chemical formula for common salt?", "Option A": "H2O", "Option B": "CO2", "Option C": "NaCl", "Option D": "C6H12O6", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which is the largest democracy in the world?", "Option A": "United States", "Option B": "India", "Option C": "China", "Option D": "Indonesia", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is the primary function of red blood cells?", "Option A": "Fight infection", "Option B": "Carry oxygen", "Option C": "Clot blood", "Option D": "Produce antibodies", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which Indian state is famous for its backwaters?", "Option A": "Goa", "Option B": "Kerala", "Option C": "Odisha", "Option D": "West Bengal", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Who wrote 'Wings of Fire'?", "Option A": "Jawaharlal Nehru", "Option B": "APJ Abdul Kalam", "Option C": "Mahatma Gandhi", "Option D": "Rabindranath Tagore", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which is the largest planet in our solar system?", "Option A": "Earth", "Option B": "Mars", "Option C": "Jupiter", "Option D": "Saturn", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is the SI unit of force?", "Option A": "Joule", "Option B": "Watt", "Option C": "Newton", "Option D": "Volt", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which Indian city is known as the 'Pink City'?", "Option A": "Jaipur", "Option B": "Udaipur", "Option C": "Jodhpur", "Option D": "Pushkar", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "What is the process of converting sugar into alcohol?", "Option A": "Distillation", "Option B": "Fermentation", "Option C": "Oxidation", "Option D": "Reduction", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Who was the first Indian to go into space?", "Option A": "Kalpana Chawla", "Option B": "Sunita Williams", "Option C": "Rakesh Sharma", "Option D": "Yuri Gagarin", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which is the smallest country in the world by land area?", "Option A": "Monaco", "Option B": "Vatican City", "Option C": "Nauru", "Option D": "San Marino", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is the chemical symbol for iron?", "Option A": "Au", "Option B": "Ag", "Option C": "Fe", "Option D": "Cu", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which Indian state is known for its classical dance 'Kathakali'?", "Option A": "Tamil Nadu", "Option B": "Kerala", "Option C": "Andhra Pradesh", "Option D": "Odisha", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is the study of earthquakes called?", "Option A": "Geology", "Option B": "Meteorology", "Option C": "Seismology", "Option D": "Volcanology", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which Indian city is known as the 'Garden City of India'?", "Option A": "Delhi", "Option B": "Mumbai", "Option C": "Bengaluru", "Option D": "Chennai", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is the largest bone in the human body?", "Option A": "Tibia", "Option B": "Femur", "Option C": "Humerus", "Option D": "Patella", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Who painted the 'Last Supper'?", "Option A": "Vincent van Gogh", "Option B": "Pablo Picasso", "Option C": "Leonardo da Vinci", "Option D": "Claude Monet", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which is the longest river in Asia?", "Option A": "Ganga", "Option B": "Yangtze", "Option C": "Mekong", "Option D": "Indus", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is the process of a liquid turning into a gas?", "Option A": "Condensation", "Option B": "Melting", "Option C": "Evaporation", "Option D": "Freezing", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which Indian state is known for its 'Bhangra' dance?", "Option A": "Rajasthan", "Option B": "Punjab", "Option C": "Gujarat", "Option D": "Haryana", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is the capital of Canada?", "Option A": "Toronto", "Option B": "Vancouver", "Option C": "Ottawa", "Option D": "Montreal", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which gas do plants absorb from the atmosphere?", "Option A": "Oxygen", "Option B": "Nitrogen", "Option C": "Carbon Dioxide", "Option D": "Hydrogen", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Who is the author of 'Harry Potter' series?", "Option A": "J.R.R. Tolkien", "Option B": "C.S. Lewis", "Option C": "J.K. Rowling", "Option D": "George R.R. Martin", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which is the largest continent by area?", "Option A": "Africa", "Option B": "Europe", "Option C": "Asia", "Option D": "North America", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is the SI unit of electric current?", "Option A": "Volt", "Option B": "Ohm", "Option C": "Ampere", "Option D": "Watt", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which Indian state is known as the 'Land of Five Rivers'?", "Option A": "Uttar Pradesh", "Option B": "Punjab", "Option C": "Haryana", "Option D": "Himachal Pradesh", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is the process of a solid turning directly into a gas?", "Option A": "Evaporation", "Option B": "Sublimation", "Option C": "Condensation", "Option D": "Melting", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Who discovered gravity?", "Option A": "Albert Einstein", "Option B": "Isaac Newton", "Option C": "Galileo Galilei", "Option D": "Stephen Hawking", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which is the longest mountain range in the world?", "Option A": "Himalayas", "Option B": "Andes", "Option C": "Rocky Mountains", "Option D": "Alps", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is the main ingredient of glass?", "Option A": "Clay", "Option B": "Sand", "Option C": "Plastic", "Option D": "Metal", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which Indian city is known as the 'Financial Capital of India'?", "Option A": "Delhi", "Option B": "Mumbai", "Option C": "Chennai", "Option D": "Kolkata", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is the fastest land animal?", "Option A": "Lion", "Option B": "Tiger", "Option C": "Cheetah", "Option D": "Leopard", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which is the largest island in the world?", "Option A": "Madagascar", "Option B": "Greenland", "Option C": "Borneo", "Option D": "New Guinea", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is the chemical symbol for oxygen?", "Option A": "O", "Option B": "O2", "Option C": "Ox", "Option D": "Om", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which Indian festival is known as the 'Festival of Colors'?", "Option A": "Diwali", "Option B": "Holi", "Option C": "Eid", "Option D": "Christmas", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is the capital of Australia?", "Option A": "Sydney", "Option B": "Melbourne", "Option C": "Canberra", "Option D": "Perth", "Correct Answer (A/B/C/D)": "C"}
+        ];
+
+        questions['expert'] = [
+            {"Question": "What is the capital of India?", "Option A": "Kolkata", "Option B": "Mumbai", "Option C": "New Delhi", "Option D": "Chennai", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which is the national bird of India?", "Option A": "Sparrow", "Option B": "Peacock", "Option C": "Parrot", "Option D": "Crow", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which is the currency of India?", "Option A": "Dollar", "Option B": "Yen", "Option C": "Rupee", "Option D": "Euro", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is the color of the Indian flag?", "Option A": "Red, White, Green", "Option B": "Saffron, White, Green", "Option C": "Blue, White, Green", "Option D": "Yellow, Green, Red", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "How many states are there in India?", "Option A": "28", "Option B": "29", "Option C": "30", "Option D": "31", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which river is the longest in India?", "Option A": "Ganga", "Option B": "Yamuna", "Option C": "Brahmaputra", "Option D": "Godavari", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "What is the national fruit of India?", "Option A": "Banana", "Option B": "Apple", "Option C": "Mango", "Option D": "Orange", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which animal is known as the 'Ship of the Desert'?", "Option A": "Horse", "Option B": "Donkey", "Option C": "Camel", "Option D": "Elephant", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which is the national sport of India?", "Option A": "Cricket", "Option B": "Hockey", "Option C": "Football", "Option D": "Kabaddi", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Who is the Prime Minister of India (as of 2025)?", "Option A": "Rahul Gandhi", "Option B": "Narendra Modi", "Option C": "Amit Shah", "Option D": "Yogi Adityanath", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What do plants need to make food?", "Option A": "Sunlight", "Option B": "Soil", "Option C": "Water", "Option D": "Air", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which planet is closest to the Sun?", "Option A": "Earth", "Option B": "Venus", "Option C": "Mercury", "Option D": "Mars", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "How many legs does an insect have?", "Option A": "4", "Option B": "6", "Option C": "8", "Option D": "10", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What gas do we breathe in to stay alive?", "Option A": "Carbon Dioxide", "Option B": "Oxygen", "Option C": "Nitrogen", "Option D": "Hydrogen", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is H2O commonly known as?", "Option A": "Salt", "Option B": "Water", "Option C": "Sugar", "Option D": "Oxygen", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which organ pumps blood in the human body?", "Option A": "Liver", "Option B": "Lungs", "Option C": "Heart", "Option D": "Brain", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "How many planets are there in the Solar System?", "Option A": "7", "Option B": "8", "Option C": "9", "Option D": "10", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which part of a plant is green and makes food?", "Option A": "Root", "Option B": "Stem", "Option C": "Leaf", "Option D": "Flower", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What do bees make?", "Option A": "Butter", "Option B": "Milk", "Option C": "Honey", "Option D": "Juice", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is the solid form of water?", "Option A": "Gas", "Option B": "Liquid", "Option C": "Ice", "Option D": "Steam", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Who was the first President of India?", "Option A": "Dr. Rajendra Prasad", "Option B": "Jawaharlal Nehru", "Option C": "Mahatma Gandhi", "Option D": "Subhash Chandra Bose", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "In which year did India gain independence?", "Option A": "1945", "Option B": "1946", "Option C": "1947", "Option D": "1948", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Who is known as the 'Father of the Nation'?", "Option A": "Jawaharlal Nehru", "Option B": "Dr. Ambedkar", "Option C": "Bhagat Singh", "Option D": "Mahatma Gandhi", "Correct Answer (A/B/C/D)": "D"},
+            {"Question": "Which city was the capital of India before Delhi?", "Option A": "Kolkata", "Option B": "Mumbai", "Option C": "Hyderabad", "Option D": "Chennai", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Who wrote the Indian National Anthem?", "Option A": "Mahatma Gandhi", "Option B": "Rabindranath Tagore", "Option C": "Subhash Bose", "Option D": "Sarojini Naidu", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which freedom fighter gave the slogan 'Jai Hind'?", "Option A": "Sardar Patel", "Option B": "Bhagat Singh", "Option C": "Subhash Chandra Bose", "Option D": "Rajguru", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What was the Quit India Movement?", "Option A": "A protest for independence", "Option B": "A game", "Option C": "A company", "Option D": "An exam", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Who was the first woman Prime Minister of India?", "Option A": "Sonia Gandhi", "Option B": "Pratibha Patil", "Option C": "Indira Gandhi", "Option D": "Kiran Bedi", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What was the ancient name of India?", "Option A": "Hindustan", "Option B": "Aryavarta", "Option C": "Bharat", "Option D": "All of these", "Correct Answer (A/B/C/D)": "D"},
+            {"Question": "Which empire built the Taj Mahal?", "Option A": "Gupta", "Option B": "Maurya", "Option C": "Mughal", "Option D": "British", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which state is known as the 'Abode of Clouds'?", "Option A": "Arunachal Pradesh", "Option B": "Manipur", "Option C": "Meghalaya", "Option D": "Nagaland", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is the capital of Meghalaya?", "Option A": "Tura", "Option B": "Shillong", "Option C": "Jowai", "Option D": "Nongpoh", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which tribe is predominant in Meghalaya?", "Option A": "Mizo", "Option B": "Khasi", "Option C": "Ao", "Option D": "Naga", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is the name of the famous waterfall near Cherrapunji?", "Option A": "Elephant Falls", "Option B": "Bishop Falls", "Option C": "Nohkalikai Falls", "Option D": "Sweet Falls", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which is the wettest place in India?", "Option A": "Mawsynram", "Option B": "Cherrapunji", "Option C": "Shillong", "Option D": "Imphal", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which fruit is a specialty of Sohra region?", "Option A": "Apple", "Option B": "Mango", "Option C": "Pineapple", "Option D": "Banana", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is the staple food of Khasi people?", "Option A": "Rice", "Option B": "Chapati", "Option C": "Bread", "Option D": "Dosa", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which river flows through Shillong?", "Option A": "Umkhrah", "Option B": "Dibang", "Option C": "Barak", "Option D": "Teesta", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which lake is famous in Shillong?", "Option A": "Dal Lake", "Option B": "Wards Lake", "Option C": "Umiam Lake", "Option D": "Tsomgo Lake", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which festival is celebrated by the Khasi tribe?", "Option A": "Hornbill", "Option B": "Rongali Bihu", "Option C": "Nongkrem", "Option D": "Durga Puja", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is a front desk in a hotel?", "Option A": "Kitchen", "Option B": "Reception", "Option C": "Store", "Option D": "Restaurant", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is 'housekeeping' in a hotel?", "Option A": "Cleaning rooms", "Option B": "Cooking food", "Option C": "Serving drinks", "Option D": "Selling tickets", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "What does a bellboy do?", "Option A": "Repair TV", "Option B": "Deliver luggage", "Option C": "Cook food", "Option D": "Clean washroom", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which room is most expensive in a hotel?", "Option A": "Single Room", "Option B": "Double Room", "Option C": "Suite", "Option D": "Deluxe Room", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is a menu?", "Option A": "A room key", "Option B": "A food list", "Option C": "A hotel bill", "Option D": "A calendar", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is room service?", "Option A": "Cleaning pool", "Option B": "Fixing electricity", "Option C": "Serving food in room", "Option D": "Checking passports", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What does a chef do?", "Option A": "Clean rooms", "Option B": "Cook food", "Option C": "Drive car", "Option D": "Manage accounts", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which department handles guest check-in?", "Option A": "Kitchen", "Option B": "Housekeeping", "Option C": "Front Office", "Option D": "Security", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is turndown service?", "Option A": "Making bed for sleep", "Option B": "Cooking dinner", "Option C": "Cleaning shoes", "Option D": "Cutting fruit", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "What does hospitality mean?", "Option A": "Hostility", "Option B": "Friendliness to guests", "Option C": "Opening stores", "Option D": "Playing music", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which insect produces silk?", "Option A": "Mosquito", "Option B": "Housefly", "Option C": "Silkworm", "Option D": "Ant", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which vitamin is provided by sunlight?", "Option A": "Vitamin A", "Option B": "Vitamin B", "Option C": "Vitamin C", "Option D": "Vitamin D", "Correct Answer (A/B/C/D)": "D"},
+            {"Question": "Which sense is used to smell?", "Option A": "Eyes", "Option B": "Ears", "Option C": "Nose", "Option D": "Tongue", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "How many bones are there in the adult human body?", "Option A": "200", "Option B": "206", "Option C": "208", "Option D": "210", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which gas is used to fill balloons?", "Option A": "Oxygen", "Option B": "Helium", "Option C": "Hydrogen", "Option D": "Carbon dioxide", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is the largest organ in the human body?", "Option A": "Heart", "Option B": "Liver", "Option C": "Skin", "Option D": "Brain", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "How many hours are there in a day?", "Option A": "12", "Option B": "24", "Option C": "48", "Option D": "60", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which shape has 3 sides?", "Option A": "Square", "Option B": "Rectangle", "Option C": "Triangle", "Option D": "Circle", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What do cows give us?", "Option A": "Water", "Option B": "Milk", "Option C": "Meat", "Option D": "Wool", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which part of your body helps you think?", "Option A": "Brain", "Option B": "Heart", "Option C": "Liver", "Option D": "Lungs", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which is the tallest animal?", "Option A": "Zebra", "Option B": "Giraffe", "Option C": "Horse", "Option D": "Elephant", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "How many fingers do humans have on one hand?", "Option A": "3", "Option B": "4", "Option C": "5", "Option D": "6", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is the freezing point of water?", "Option A": "0°C", "Option B": "10°C", "Option C": "50°C", "Option D": "100°C", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which animal is known as the king of the jungle?", "Option A": "Tiger", "Option B": "Lion", "Option C": "Cheetah", "Option D": "Elephant", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What do we wear on our feet?", "Option A": "Shirt", "Option B": "Pants", "Option C": "Shoes", "Option D": "Hat", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which animal gives wool?", "Option A": "Goat", "Option B": "Sheep", "Option C": "Horse", "Option D": "Cow", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which bird can mimic human speech?", "Option A": "Pigeon", "Option B": "Crow", "Option C": "Parrot", "Option D": "Eagle", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which number comes after 9?", "Option A": "7", "Option B": "8", "Option C": "10", "Option D": "11", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What do we use to write on a blackboard?", "Option A": "Pencil", "Option B": "Chalk", "Option C": "Pen", "Option D": "Marker", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What color do you get by mixing red and yellow?", "Option A": "Orange", "Option B": "Green", "Option C": "Blue", "Option D": "Purple", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which fruit is yellow and curved?", "Option A": "Apple", "Option B": "Mango", "Option C": "Banana", "Option D": "Orange", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "How many days are there in a week?", "Option A": "5", "Option B": "6", "Option C": "7", "Option D": "8", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which festival is known as the festival of lights?", "Option A": "Holi", "Option B": "Eid", "Option C": "Diwali", "Option D": "Christmas", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which animal is known for its trunk?", "Option A": "Elephant", "Option B": "Lion", "Option C": "Zebra", "Option D": "Deer", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "What is the main source of energy for Earth?", "Option A": "Moon", "Option B": "Stars", "Option C": "Sun", "Option D": "Electricity", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which is the national flower of India?", "Option A": "Sunflower", "Option B": "Rose", "Option C": "Lotus", "Option D": "Jasmine", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which animal is found in Kaziranga National Park?", "Option A": "Tiger", "Option B": "Elephant", "Option C": "Rhino", "Option D": "Leopard", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which country is to the north of India?", "Option A": "Sri Lanka", "Option B": "Pakistan", "Option C": "China", "Option D": "Nepal", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which is the smallest state in India?", "Option A": "Goa", "Option B": "Sikkim", "Option C": "Tripura", "Option D": "Manipur", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "What is Shillong also known as?", "Option A": "Scotland of the East", "Option B": "City of Lakes", "Option C": "City of Joy", "Option D": "Queen of Hills", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which city hosts the Cherry Blossom Festival?", "Option A": "Imphal", "Option B": "Shillong", "Option C": "Aizawl", "Option D": "Kohima", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What language do most people speak in Shillong?", "Option A": "Hindi", "Option B": "Khasi", "Option C": "Tamil", "Option D": "Bengali", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What does a receptionist do?", "Option A": "Serve food", "Option B": "Clean rooms", "Option C": "Greet guests", "Option D": "Cook meals", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Which dish is common in Khasi cuisine?", "Option A": "Biryani", "Option B": "Jadoh", "Option C": "Dhokla", "Option D": "Momos", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which hill station is the capital of Mizoram?", "Option A": "Kohima", "Option B": "Imphal", "Option C": "Aizawl", "Option D": "Agartala", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is a concierge in a hotel?", "Option A": "A chef", "Option B": "A housekeeper", "Option C": "A front office helper", "Option D": "A travel assistant", "Correct Answer (A/B/C/D)": "D"},
+            {"Question": "What is a guest in a hotel?", "Option A": "Someone working there", "Option B": "Someone visiting", "Option C": "Someone lost", "Option D": "Someone shopping", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "What is the national animal of India?", "Option A": "Tiger", "Option B": "Lion", "Option C": "Elephant", "Option D": "Leopard", "Correct Answer (A/B/C/D)": "A"},
+            {"Question": "Which planet do we live on?", "Option A": "Mars", "Option B": "Earth", "Option C": "Jupiter", "Option D": "Venus", "Correct Answer (A/B/C/D)": "B"},
+            {"Question": "Which part of the body helps us see?", "Option A": "Ears", "Option B": "Nose", "Option C": "Mouth", "Option D": "Eyes", "Correct Answer (A/B/C/D)": "D"},
+            {"Question": "Which is the first month of the year?", "Option A": "December", "Option B": "June", "Option C": "January", "Option D": "March", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What does a waiter do?", "Option A": "Cooks food", "Option B": "Cleans dishes", "Option C": "Serves customers", "Option D": "Manages hotel", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "Where is Umiam Lake located?", "Option A": "Tura", "Option B": "Nongstoin", "Option C": "Shillong", "Option D": "Jowai", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What is the job of a lifeguard?", "Option A": "Guard the door", "Option B": "Serve food", "Option C": "Protect swimmers", "Option D": "Clean rooms", "Correct Answer (A/B/C/D)": "C"},
+            {"Question": "What does a fire extinguisher do?", "Option A": "Creates fire", "Option B": "Makes smoke", "Option C": "Stores water", "Option D": "Puts out fire", "Correct Answer (A/B/C/D)": "D"},
+            {"Question": "Which department handles laundry in a hotel?", "Option A": "Kitchen", "Option B": "Housekeeping", "Option C": "Front Office", "Option D": "Security", "Correct Answer (A/B/C/D)": "B"}
+        ];
+        console.log("Questions loaded from code and will be supplemented by uploaded Excel/CSV files.");
+
+
+        // --- DOM Elements ---
+        const sections = document.querySelectorAll('.section');
+        const customModal = document.getElementById('customModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalButtons = document.getElementById('modalButtons');
+        // Global Nav Buttons
+        const goToMainMenuBtnGlobal = document.getElementById('goToMainMenuBtnGlobal');
+        const goToSettingsMenuBtnGlobal = document.getElementById('goToSettingsMenuBtnGlobal');
+        const goToMainGameBtnGlobal = document.getElementById('goToMainGameBtnGlobal');
+
+        // Main Menu
+        const goToSettingsMenuBtn = document.getElementById('goToSettingsMenuBtn');
+        const goToDifficultySelectionBtn = document.getElementById('goToDifficultySelectionBtn');
+
+        // Difficulty Selection
+        const difficultyDropdown = document.getElementById('difficultyDropdown');
+        const proceedToAddTeamBtn = document.getElementById('proceedToAddTeamBtn');
+
+        // Add Team Section
+        const teamsContainer = document.getElementById('teamsContainer');
+        const addTeamBtn = document.getElementById('addTeamBtn');
+        const removeTeamBtn = document.getElementById('removeTeamBtn');
+        const nextToReadyBtn = document.getElementById('nextToReadyBtn');
+        // Are You Ready
+        const yesReadyBtn = document.getElementById('yesReadyBtn');
+        const noReadyBtn = document.getElementById('noReadyBtn');
+        // Game Section
+        const scorecard = document.getElementById('scorecard');
+        const resetGameBtn = document.getElementById('resetGameBtn');
+        const currentLevelDisplay = document.getElementById('currentLevelDisplay');
+        const currentQuestionNumberDisplay = document.getElementById('currentQuestionNumberDisplay');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const questionText = document.getElementById('questionText');
+        const optionsContainer = document.getElementById('optionsContainer');
+        const optionButtons = optionsContainer.querySelectorAll('.option-button');
+        const fiftyFiftyBtn = document.getElementById('fiftyFiftyBtn');
+        const fiftyFiftyCountDisplay = document.getElementById('fiftyFiftyCount');
+        const nextQuestionBtn = document.getElementById('nextQuestionBtn');
+        // Settings Section
+        const downloadTemplateBtn = document.getElementById('downloadTemplateBtn');
+        const uploadQuestionsInput = document.getElementById('uploadQuestionsInput');
+        const uploadStatus = document.getElementById('uploadStatus');
+        const mainMusicVolume = document.getElementById('mainMusicVolume');
+        const sfxVolume = document.getElementById('sfxVolume');
+        const toggleMenuMusicBtn = document.getElementById('toggleMenuMusicBtn');
+        const toggleMainGameMusicBtn = document.getElementById('toggleMainGameMusicBtn');
+        // --- Utility Functions ---
+
+        /**
+         * Displays a custom modal message.
+         * @param {string} title - The title of the modal.
+         * @param {string} message - The message content.
+         * @param {Array<{text: string, className: string, onClick: Function}>} buttons - Array of button objects.
+         */
+        function showModal(title, message, buttons = [{ text: 'OK', className: 'btn', onClick: hideModal }]) {
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            modalButtons.innerHTML = ''; // Clear previous buttons
+            buttons.forEach(btnConfig => {
+                const button = document.createElement('button');
+                button.textContent = btnConfig.text;
+                button.className = btnConfig.className;
+                button.onclick = () => {
+                    btnConfig.onClick();
+                    hideModal(); // Hide modal after button click
+                };
+                modalButtons.appendChild(button);
+            });
+            customModal.style.display = 'flex';
+        }
+
+        /** Hides the custom modal.
+         */
+        function hideModal() {
+            customModal.style.display = 'none';
+        }
+
+        /**
+         * Shuffles an array in place (Fisher-Yates algorithm).
+         * @param {Array} array - The array to shuffle.
+         * @returns {Array} The shuffled array.
+         */
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        /**
+         * Shows a specific section and hides others.
+         * Also manages global navigation button visibility.
+         * @param {string} sectionId - The ID of the section to show.
+         */
+        function showSection(sectionId) {
+            currentSection = sectionId;
+            sections.forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(sectionId).classList.add('active');
+
+            // Manage global nav buttons visibility
+            goToMainMenuBtnGlobal.style.display = (sectionId !== 'main-menu') ? 'inline-block' : 'none';
+            goToSettingsMenuBtnGlobal.style.display = (sectionId !== 'settings-section') ? 'inline-block' : 'none';
+            goToMainGameBtnGlobal.style.display = (sectionId === 'settings-section' || sectionId === 'add-team-section' || sectionId === 'are-you-ready-section') && teams.length > 0 ? 'inline-block' : 'none';
+
+            // Manage music playback based on section, only after user interaction
+            if (hasUserInteracted) {
+                if (sectionId === 'main-menu' || sectionId === 'difficulty-selection' || sectionId === 'add-team-section' || sectionId === 'are-you-ready-section' || sectionId === 'settings-section') {
+                    audio.maingameLoop.pause();
+                    audio.maingameLoop.currentTime = 0; // Reset game music
+                    try {
+                        audio.menu.play().catch(e => console.error("Error playing menu music:", e));
+                    } catch (e) {
+                        console.error("Caught error trying to play menu music:", e);
+                    }
+                } else if (sectionId === 'game-section') {
+                    audio.menu.pause();
+                    audio.menu.currentTime = 0; // Reset menu music
+                    try {
+                        audio.maingameLoop.play().catch(e => console.error("Error playing main game music:", e));
+                    } catch (e) {
+                        console.error("Caught error trying to play main game music:", e);
+                    }
+                }
+            }
+        }
+
+        // --- Audio Control Functions ---
+        function toggleMusic(audioElement, buttonElement) {
+            if (audioElement.paused) {
+                try {
+                    audioElement.play().catch(e => console.error("Error playing music:", e));
+                    buttonElement.textContent = buttonElement.textContent.replace('Play', 'Pause');
+                } catch (e) {
+                    console.error("Caught error trying to toggle music play:", e);
+                }
+            } else {
+                audioElement.pause();
+                buttonElement.textContent = buttonElement.textContent.replace('Pause', 'Play');
+            }
+        }
+
+        function updateVolume(audioElement, volume) {
+            audioElement.volume = parseFloat(volume);
+        }
+
+        // --- Main Menu Logic ---
+        goToSettingsMenuBtn.addEventListener('click', () => {
+            hasUserInteracted = true; // Mark user interaction
+            showSection('settings-section');
+        });
+        goToDifficultySelectionBtn.addEventListener('click', () => {
+            hasUserInteracted = true; // Mark user interaction
+            showSection('difficulty-selection');
+        });
+        // --- Difficulty Selection Logic ---
+        proceedToAddTeamBtn.addEventListener('click', () => {
+            currentDifficulty = difficultyDropdown.value;
+            // Questions will be loaded from the `questions` object, which is populated by file upload
+            showSection('add-team-section');
+        });
+        // --- Add Team Logic ---
+        let teamCount = 0;
+        function addTeamInput() {
+            if (teamCount >= 4) {
+                showModal('Limit Reached', 'You can add a maximum of 4 teams.');
+                return;
+            }
+            teamCount++;
+            const teamDiv = document.createElement('div');
+            teamDiv.className = 'flex items-center space-x-2';
+            teamDiv.innerHTML = `
+                <label class="text-xl font-semibold">Team ${teamCount}:</label>
+                <input type="text" id="teamName${teamCount}" placeholder="Enter team name" class="input-field flex-grow">
+            `;
+            teamsContainer.appendChild(teamDiv);
+        }
+
+        function removeTeamInput() {
+            if (teamCount <= 1) {
+                showModal('Minimum Teams', 'You need at least 1 team to play.');
+                return;
+            }
+            teamsContainer.lastChild.remove();
+            teamCount--;
+        }
+
+        addTeamBtn.addEventListener('click', addTeamInput);
+        removeTeamBtn.addEventListener('click', removeTeamInput);
+        // Initialize with one team input
+        addTeamInput();
+        nextToReadyBtn.addEventListener('click', () => {
+            teams = [];
+            let allNamesValid = true;
+            for (let i = 1; i <= teamCount; i++) {
+                const teamNameInput = document.getElementById(`teamName${i}`);
+                const name = teamNameInput.value.trim();
+                if (name === '') {
+                    allNamesValid = false;
+                    showModal('Missing Team Name', `Please enter a name for Team ${i}.`);
+                    break;
+                }
+                teams.push({ name: name, score: 0 });
+            }
+
+            if (allNamesValid) {
+                if (teams.length < 1) {
+                    showModal('No Teams', 'Please add at least one team to proceed.');
+                    return;
+                }
+                showSection('are-you-ready-section');
+            }
+        });
+        // --- Are You Ready Logic ---
+        yesReadyBtn.addEventListener('click', () => {
+            // Check if questions for the current difficulty are loaded
+            if (!questions[currentDifficulty] || questions[currentDifficulty].length === 0) {
+                showModal('No Questions Loaded', `No questions found for the "${currentDifficulty}" difficulty. Please upload the corresponding Excel/CSV file in settings.`);
+                return;
+            }
+            startGame();
+        });
+        noReadyBtn.addEventListener('click', () => showSection('add-team-section'));
+        // --- Game Logic ---
+        /** Initializes the game state and starts the first question.
+         */
+        function startGame() {
+            currentLevel = 1;
+            currentQuestionIndex = 0;
+            fiftyFiftyUsedCount = 3; // Reset to 3 for new game
+            updateFiftyFiftyCount();
+            teams.forEach(team => team.score = 0); // Reset scores
+            updateScorecard();
+
+            // Shuffle questions for the selected difficulty
+            if (questions[currentDifficulty]) {
+                shuffledQuestions = shuffleArray([...questions[currentDifficulty]]);
+                if (shuffledQuestions.length < 50) { // 5 levels * 10 questions
+                    showModal('Not Enough Questions', `You need at least 50 questions for the "${currentDifficulty}" difficulty to play a full game. Please upload a file with more questions.`);
+                    showSection('settings-section'); // Go to settings
+                    return;
+                }
+                // Take 50 questions for the game (10 per level * 5 levels)
+                shuffledQuestions = shuffledQuestions.slice(0, 50);
+            } else {
+                // This case should ideally be caught by the check in yesReadyBtn click
+                showModal('Error', 'No questions found for the selected difficulty. Please upload the appropriate file.');
+                showSection('settings-section');
+                return;
+            }
+            showSection('game-section');
+            displayQuestion();
+        }
+        /** Updates the team score display. */
+        function updateScorecard() {
+            scorecard.innerHTML = '';
+            teams.forEach((team, index) => {
+                const teamScoreDiv = document.createElement('div');
+                teamScoreDiv.className = 'score-card-item';
+                teamScoreDiv.innerHTML = `
+                    <span class="text-xl font-semibold">${team.name}:</span>
+                    <span class="text-2xl font-bold text-green-400">${team.score}</span>
+                    <button class="btn-green text-sm px-3 py-1 rounded-lg add-points-btn" data-team-index="${index}">
+                        <i class="fas fa-plus mr-1"></i> Add Points
+                    </button>
+                `;
+                scorecard.appendChild(teamScoreDiv);
+            });
+            // Attach event listeners to new add points buttons
+            document.querySelectorAll('.add-points-btn').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const teamIndex = parseInt(event.currentTarget.dataset.teamIndex);
+                    const pointsToAdd = pointsPerLevel[currentLevel];
+                    showModal(
+                        'Add Points',
+                        `Add ${pointsToAdd} points to ${teams[teamIndex].name}?`,
+                        [
+                            { text: 'Yes', className: 'btn-green', onClick: () => {
+                                teams[teamIndex].score += pointsToAdd;
+                                updateScorecard();
+                                showModal('Points Added', `${pointsToAdd} points added to ${teams[teamIndex].name}.`);
+                            }},
+                            { text: 'No', className: 'btn-red', onClick: hideModal }
+                        ]
+                    );
+                });
+            });
+        }
+        /** Displays the current question and options. */
+        function displayQuestion() {
+            clearInterval(timerInterval); // Clear any existing timer
+            questionAnswered = false;
+            nextQuestionBtn.style.display = 'none';
+            // Reset option button styles and enable them
+            optionButtons.forEach(button => {
+                button.classList.remove('correct', 'wrong', 'disabled');
+                button.disabled = false;
+                // Ensure the span content is visible again if it was hidden by 50:50
+                const span = button.querySelector('span');
+                if (span) span.style.display = 'inline';
+            });
+
+            if (currentQuestionIndex >= shuffledQuestions.length || currentQuestionIndex >= (currentLevel * 10)) { // All questions for the current level answered or game finished
+                if (currentLevel < 5) {
+                    currentLevel++;
+                    currentQuestionIndex = (currentLevel - 1) * 10; // Start index for next level's questions
+                    fiftyFiftyUsedCount = 3; // Reset 50:50 for the new level
+                    updateFiftyFiftyCount();
+                    // Update display for new level
+                    showModal('Level Complete!', `Proceeding to Level ${currentLevel}.`);
+                    // No need to reshuffle, just move to the next segment of shuffledQuestions
+                } else {
+                    endGame();
+                    return;
+                }
+            }
+
+            const question = shuffledQuestions[currentQuestionIndex];
+            if (!question) {
+                showModal('Error', 'Could not load question. Please check game code or question data.');
+                endGame();
+                return;
+            }
+
+            currentLevelDisplay.textContent = currentLevel;
+            currentQuestionNumberDisplay.textContent = (currentQuestionIndex % 10) + 1; // Question number within the current level
+            questionText.textContent = question.Question;
+            // Updated: Accessing spans within option buttons directly
+            optionButtons[0].querySelector('span').textContent = question['Option A'];
+            optionButtons[1].querySelector('span').textContent = question['Option B'];
+            optionButtons[2].querySelector('span').textContent = question['Option C'];
+            optionButtons[3].querySelector('span').textContent = question['Option D'];
+
+            console.log("Current Question:", question.Question);
+            console.log("Correct Answer (from data):", question['Correct Answer (A/B/C/D)']); // Log the exact value
+            startTimer(timerDurations[currentLevel]);
+        }
+        /** Starts the countdown timer for the current question. */
+        function startTimer(duration) {
+            timeLeft = duration;
+            timerDisplay.textContent = timeLeft;
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    showModal('Time Up!', 'You ran out of time. The correct answer was ' + shuffledQuestions[currentQuestionIndex]['Correct Answer (A/B/C/D)'] + '.'); // Use correct key
+                    // Optionally, penalize or move to next question
+                    markWrongAnswer(); // Mark as wrong if time runs out
+                    nextQuestionBtn.style.display = 'block';
+                }
+            }, 1000);
+        }
+        /** Handles user clicking an answer option. */
+        optionsContainer.addEventListener('click', (event) => {
+            if (!event.target.classList.contains('option-button') || questionAnswered) {
+                return;
+            }
+            clearInterval(timerInterval); // Stop the timer
+            questionAnswered = true; // Prevent further clicks
+            const selectedOption = event.target.dataset.option;
+            const question = shuffledQuestions[currentQuestionIndex];
+            // FIX: Use the exact column name from the template and trim it
+            const correctAnswer = String(question['Correct Answer (A/B/C/D)']).trim();
+
+            console.log("Selected Option:", selectedOption);
+            console.log("Correct Answer (parsed):", correctAnswer);
+
+            optionButtons.forEach(button => {
+                button.disabled = true; // Disable all options after selection
+                if (button.dataset.option === correctAnswer) {
+                    button.classList.add('correct');
+                } else {
+                    button.classList.add('wrong');
+                }
+            });
+
+            if (selectedOption === correctAnswer) {
+                try {
+                    audio.correctAns.play();
+                } catch (e) {
+                    console.error("Error playing correct answer sound:", e);
+                }
+                showModal('Correct Answer!', 'Well done!');
+                // GM will manually add points via the scorecard button
+            } else {
+                try {
+                    audio.wrongAns.play();
+                } catch (e) {
+                    console.error("Error playing wrong answer sound:", e);
+                }
+                showModal('Wrong Answer!', 'Oops! The correct answer was ' + correctAnswer + '.');
+            }
+            nextQuestionBtn.style.display = 'block';
+        });
+        /** Helper to mark all options as wrong if time runs out or similar.
+         */
+        function markWrongAnswer() {
+            const question = shuffledQuestions[currentQuestionIndex];
+            // FIX: Use the exact column name from the template and trim it
+            const correctAnswer = String(question['Correct Answer (A/B/C/D)']).trim();
+
+            optionButtons.forEach(button => {
+                button.disabled = true;
+                if (button.dataset.option === correctAnswer) {
+                    button.classList.add('correct'); // Show correct answer
+                } else {
+                    button.classList.add('wrong');
+                }
+            });
+            try {
+                audio.wrongAns.play();
+            } catch (e) {
+                console.error("Error playing wrong answer sound (from time out):", e);
+            }
+            questionAnswered = true;
+        }
+        /** Moves to the next question or ends the level/game.
+         */
+        nextQuestionBtn.addEventListener('click', () => {
+            currentQuestionIndex++;
+            displayQuestion(); // This function handles level progression too
+        });
+        /** Implements the 50:50 lifeline.
+         */
+        fiftyFiftyBtn.addEventListener('click', () => {
+            if (fiftyFiftyUsedCount <= 0 || questionAnswered) {
+                showModal('Lifeline Used', 'You have no 50:50 lifelines left or the question has already been answered.');
+                return;
+            }
+
+            const question = shuffledQuestions[currentQuestionIndex];
+            const correctAnswer = String(question['Correct Answer (A/B/C/D)']).trim();
+            const wrongOptions = Array.from(optionButtons).filter(button => button.dataset.option !== correctAnswer);
+
+            // Randomly select two wrong options to remove
+            shuffleArray(wrongOptions);
+            const optionsToRemove = wrongOptions.slice(0, 2);
+
+            optionsToRemove.forEach(button => {
+                button.disabled = true;
+                const span = button.querySelector('span');
+                if (span) span.style.display = 'none'; // Hide the text
+            });
+
+            fiftyFiftyUsedCount--;
+            updateFiftyFiftyCount();
+            showModal('50:50 Used!', 'Two incorrect options have been removed.');
+        });
+
+        function updateFiftyFiftyCount() {
+            fiftyFiftyCountDisplay.textContent = fiftyFiftyUsedCount;
+            if (fiftyFiftyUsedCount <= 0) {
+                fiftyFiftyBtn.classList.add('used');
+                fiftyFiftyBtn.disabled = true;
+            } else {
+                fiftyFiftyBtn.classList.remove('used');
+                fiftyFiftyBtn.disabled = false;
+            }
+        }
+
+        /** Ends the game and shows final scores. */
+        function endGame() {
+            clearInterval(timerInterval);
+            teams.sort((a, b) => b.score - a.score); // Sort teams by score
+            let finalScoreMessage = 'Game Over! Final Scores:\n\n';
+            teams.forEach(team => {
+                finalScoreMessage += `${team.name}: ${team.score} points\n`;
+            });
+            showModal('Game Over!', finalScoreMessage, [
+                { text: 'Play Again', className: 'btn-green', onClick: () => showSection('difficulty-selection') },
+                { text: 'Main Menu', className: 'btn-yellow', onClick: () => showSection('main-menu') }
+            ]);
+        }
+
+        /** Resets the game to initial state (main menu). */
+        resetGameBtn.addEventListener('click', () => {
+            showModal(
+                'Reset Game',
+                'Are you sure you want to reset the game? All current progress will be lost.',
+                [
+                    { text: 'Yes, Reset', className: 'btn-red', onClick: () => {
+                        clearInterval(timerInterval);
+                        teams = [];
+                        currentLevel = 1;
+                        currentQuestionIndex = 0;
+                        fiftyFiftyUsedCount = 3;
+                        showSection('main-menu');
+                    }},
+                    { text: 'No, Cancel', className: 'btn', onClick: hideModal }
+                ]
+            );
+        });
+
+        // --- Settings Logic ---
+        downloadTemplateBtn.addEventListener('click', () => {
+            const templateData = [
+                ["Question", "Option A", "Option B", "Option C", "Option D", "Correct Answer (A/B/C/D)"]
+            ];
+            const ws = XLSX.utils.aoa_to_sheet(templateData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Questions Template");
+            XLSX.writeFile(wb, "questions_template.xlsx");
+        });
+
+        // Re-enabled the file upload input and its event listener
+        uploadQuestionsInput.addEventListener('change', handleFileUpload);
+
+        async function handleFileUpload(event) {
+            const files = event.target.files;
+            if (files.length === 0) {
+                uploadStatus.textContent = 'No files selected.';
+                return;
+            }
+
+            // Clear existing questions for the difficulties being uploaded
+            // This assumes that if a file is uploaded, it replaces the existing questions for that difficulty
+            // If you want to append, you'd modify this logic.
+            // For now, we'll clear specific difficulties based on file names.
+
+            let filesProcessed = 0;
+            let filesFailed = 0;
+
+            // Process each file
+            for (const file of files) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const sheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[sheetName];
+                        const jsonQuestions = XLSX.utils.sheet_to_json(worksheet);
+
+                        // Extract difficulty from filename (e.g., "noob.xlsx - Questions.csv" -> "noob")
+                        const fileNameLower = file.name.toLowerCase();
+                        let difficulty = 'unknown';
+                        if (fileNameLower.includes('noob')) difficulty = 'noob';
+                        else if (fileNameLower.includes('elementary')) difficulty = 'elementary';
+                        else if (fileNameLower.includes('intermediate')) difficulty = 'intermediate';
+                        else if (fileNameLower.includes('advance')) difficulty = 'advance';
+                        else if (fileNameLower.includes('expert')) difficulty = 'expert';
+
+                        if (difficulty === 'unknown') {
+                            console.warn(`Could not determine difficulty for file: ${file.name}. Skipping.`);
+                            filesFailed++;
+                            uploadStatus.textContent = `Warning: Could not determine difficulty for some files. Processed ${filesProcessed}, Failed ${filesFailed}.`;
+                            return;
+                        }
+
+                        questions[difficulty] = jsonQuestions; // Assign loaded questions to the correct difficulty
+                        filesProcessed++;
+                        console.log(`Loaded ${jsonQuestions.length} questions for ${difficulty} difficulty from ${file.name}`);
+                        uploadStatus.textContent = `Successfully loaded ${filesProcessed} file(s).`;
+
+                        // If all files are processed, update final status
+                        if (filesProcessed + filesFailed === files.length) {
+                            if (filesFailed === 0) {
+                                uploadStatus.textContent = `All ${filesProcessed} files loaded successfully!`;
+                                showModal('Upload Complete', 'All question files have been loaded successfully.');
+                            } else {
+                                showModal('Upload Warning', `Finished processing files. ${filesProcessed} loaded, ${filesFailed} failed. Check console for details.`);
+                            }
+                        }
+
+                    } catch (error) {
+                        console.error(`Error processing file ${file.name}:`, error);
+                        filesFailed++;
+                        uploadStatus.textContent = `Error loading ${file.name}. Processed ${filesProcessed}, Failed ${filesFailed}.`;
+                        // If all files are processed (even if some failed), update status
+                        if (filesProcessed + filesFailed === files.length) {
+                             showModal('Upload Error', `Finished processing files. ${filesProcessed} loaded, ${filesFailed} failed. Check console for details.`);
+                        }
+                    }
+                };
+                reader.readAsArrayBuffer(file); // Read as ArrayBuffer for SheetJS
+            }
+        }
+
+
+        mainMusicVolume.addEventListener('input', (event) => updateVolume(audio.maingameLoop, event.target.value));
+        sfxVolume.addEventListener('input', (event) => {
+            audio.correctAns.volume = parseFloat(event.target.value);
+            audio.wrongAns.volume = parseFloat(event.target.value);
+        });
+
+        toggleMenuMusicBtn.addEventListener('click', () => toggleMusic(audio.menu, toggleMenuMusicBtn));
+        toggleMainGameMusicBtn.addEventListener('click', () => toggleMusic(audio.maingameLoop, toggleMainGameMusicBtn));
+
+        // Global Navigation Event Listeners
+        goToMainMenuBtnGlobal.addEventListener('click', () => showSection('main-menu'));
+        goToSettingsMenuBtnGlobal.addEventListener('click', () => showSection('settings-section'));
+        goToMainGameBtnGlobal.addEventListener('click', () => showSection('game-section'));
+
+        // Initial volume setup
+        updateVolume(audio.menu, mainMusicVolume.value);
+        updateVolume(audio.maingameLoop, mainMusicVolume.value);
+        audio.correctAns.volume = sfxVolume.value;
+        audio.wrongAns.volume = sfxVolume.value;
+
+    </script>
+</body>
+</html>
